@@ -1,0 +1,603 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1" theme-name="Stellar" theme-version="1.28.1">
+  
+  <meta name="generator" content="Hexo 7.2.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  
+  <title>深入EVM(二)-EVM指令集 - Salbt's blog</title>
+
+  
+    <meta name="description" content="上一章介绍了EVM架构，这一章将从EVM的指令集深入。通过使用remix调试器去逐步分析合约行为，理解opcode操作过程，进而能够掌握合约debug的能力。此外，了解EVM指令还能够在solidity中使用assembly使用内联汇编">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入EVM(二)-EVM指令集">
+<meta property="og:url" content="http://salbt.github.io/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/index.html">
+<meta property="og:site_name" content="Salbt&#39;s blog">
+<meta property="og:description" content="上一章介绍了EVM架构，这一章将从EVM的指令集深入。通过使用remix调试器去逐步分析合约行为，理解opcode操作过程，进而能够掌握合约debug的能力。此外，了解EVM指令还能够在solidity中使用assembly使用内联汇编">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/EVM_run_tmie.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_2.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_3.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_4.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_5.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_6.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_7.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_8.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_9.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_10.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_11.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/EVM/set_12.png">
+<meta property="article:published_time" content="2024-07-11T16:45:58.000Z">
+<meta property="article:modified_time" content="2024-07-13T09:22:18.637Z">
+<meta property="article:author" content="Salbt">
+<meta property="article:tag" content="区块链，以太坊，EVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://salbt.github.io/images/posts/EVM/EVM_run_tmie.png">
+  
+  
+  
+  <meta name="keywords" content="区块链，以太坊，EVM">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.28.1">
+
+  
+    <link rel="shortcut icon" href="/images/header.jpg">
+  
+
+  
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/header.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Salbt's blog</div><div class="sub cap">记录学习的点滴</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="文档" href="/wiki/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/about/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/"><span class="title">深入EVM(二)-EVM指令集</span></a><a class="item title" href="/2024/07/11/%E6%B7%B1%E5%85%A5EVM(%E4%B8%80)/"><span class="title">深入EVM(一)-EVM架构</span></a><a class="item title" href="/2024/05/12/Maker-Introduce/"><span class="title">Maker协议介绍</span></a><a class="item title" href="/2024/05/28/%E5%B8%81%E5%AE%89%E9%92%B1%E5%8C%85%E8%BF%90%E4%BD%9C%E5%8E%9F%E7%90%86/"><span class="title">币安钱包运作原理</span></a><a class="item title" href="/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v1介绍和源码分析</span></a><a class="item title" href="/2024/05/27/HD%E9%92%B1%E5%8C%85/"><span class="title">HD钱包原理-BIP32、BIP39、BIP44</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE%EF%BC%8C%E4%BB%A5%E5%A4%AA%E5%9D%8A/">区块链，以太坊</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-07-11T16:45:58.000Z">2024-07-12</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-07-13T09:22:18.637Z">2024-07-13</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>深入EVM(二)-EVM指令集</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h1 id="EVM指令集"><a href="#EVM指令集" class="headerlink" title="EVM指令集"></a>EVM指令集</h1><p>EVM中的代码是合约编译过来的字节码。其中构成字节码的一个EVM指令集大小为一个字节（8bit），所以EVM总指令集最多由256个，目前已存在100多个指令（5C-5E 没有使用）。</p>
+<p>EVM执行从EVM Code中读取到的指令集，stack能从memory、calldata或storage一次加载一个字大小的数据（4byte），将指令使用的值放入栈内进行操作得到结果后将其值返回。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/EVM_run_tmie.png" alt="EVM_run_tmie"></p>
+<p>下面会从solidity汇编常用的指令去进行代码展示。EVM指令集详细细节查询：<a target="_blank" rel="noopener" href="https://www.evm.codes/">EVM Codes - An Ethereum Virtual Machine Opcodes Interactive Reference</a></p>
+<p>EVM指令提供了以下几个功能：</p>
+<ul>
+<li>算术和位逻辑运算</li>
+<li>执行上下文查询</li>
+<li>堆栈、内存和存储访问</li>
+<li>控制流操作</li>
+<li>Logging, calling和其他操作符</li>
+</ul>
+<h2 id="算术运算"><a href="#算术运算" class="headerlink" title="算术运算"></a>算术运算</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ADD        <span class="comment">//将堆栈顶部的两个项相加</span></span><br><span class="line">MUL        <span class="comment">//将堆栈顶部的两个项相乘</span></span><br><span class="line">SUB        <span class="comment">//减去堆栈顶部的两个项</span></span><br><span class="line">DIV        <span class="comment">//整数除法</span></span><br><span class="line">SDIV       <span class="comment">//有符号整数除法</span></span><br><span class="line">MOD        <span class="comment">//取模（余数）操作</span></span><br><span class="line">SMOD       <span class="comment">//有符号取模操作</span></span><br><span class="line">ADDMOD     <span class="comment">//对任意数字进行加法取模</span></span><br><span class="line">MULMOD     <span class="comment">//对任意数字进行乘法取模</span></span><br><span class="line">EXP        <span class="comment">//指数运算</span></span><br><span class="line">SIGNEXTEND <span class="comment">//扩展二进制补码有符号整数的长度</span></span><br><span class="line">SHA3       <span class="comment">//计算内存块的 Keccak-256 哈希</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="堆栈操作"><a href="#堆栈操作" class="headerlink" title="堆栈操作"></a>堆栈操作</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">POP     <span class="comment">//从堆栈中移除顶部项</span></span><br><span class="line">MLOAD   <span class="comment">//从内存中加载一个字</span></span><br><span class="line">MSTORE  <span class="comment">//将一个字保存到内存中</span></span><br><span class="line">MSTORE8 <span class="comment">//将一个字节保存到内存中</span></span><br><span class="line">SLOAD   <span class="comment">//从存储中加载一个字</span></span><br><span class="line">SSTORE  <span class="comment">//将一个字保存到存储中</span></span><br><span class="line">MSIZE   <span class="comment">//获取活动内存的大小（以字节为单位）</span></span><br><span class="line">PUSHx   <span class="comment">//将 x 字节项目放入堆栈，其中 x 可以是从 1 到 32（完整字）的任何整数</span></span><br><span class="line">DUPx    <span class="comment">//复制第 x 个堆栈项，其中 x 可以是从 1 到 16 的任何整数</span></span><br><span class="line">SWAPx   <span class="comment">//交换第 1 个和第（x +1）个堆栈项，其中 x 可以是从 1 到 16 的任何整数</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="流程控制操作码"><a href="#流程控制操作码" class="headerlink" title="流程控制操作码"></a>流程控制操作码</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">STOP      <span class="comment">//停止执行</span></span><br><span class="line">JUMP      <span class="comment">//将程序计数器设置为任何值</span></span><br><span class="line">JUMPI     <span class="comment">//有条件地更改程序计数器</span></span><br><span class="line">PC        <span class="comment">//获取程序计数器的值（在增量之前对应于此指令）</span></span><br><span class="line">JUMPDEST  <span class="comment">//标记跳转的有效目的地</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="系统操作"><a href="#系统操作" class="headerlink" title="系统操作"></a>系统操作</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">LOGx          <span class="comment">//附加具有 x 个主题的日志记录，其中 x 是从 0 到 4 的任何整数</span></span><br><span class="line">CREATE        <span class="comment">//创建一个带有关联代码的新帐户</span></span><br><span class="line">CALL          <span class="comment">//消息调用到另一个帐户，即运行另一个帐户的代码</span></span><br><span class="line">CALLCODE      <span class="comment">//消息调用到此帐户与另一个帐户的代码</span></span><br><span class="line">RETURN        <span class="comment">//停止执行并返回输出数据</span></span><br><span class="line">DELEGATECALL  <span class="comment">//使用替代帐户的代码向此帐户发送消息调用，但保留当前发送者和价值的值</span></span><br><span class="line">STATICCALL    <span class="comment">//静态消息调用到一个帐户</span></span><br><span class="line">REVERT        <span class="comment">//停止执行，恢复状态更改但返回数据和剩余 gas</span></span><br><span class="line">INVALID       <span class="comment">//指定的无效指令</span></span><br><span class="line">SELFDESTRUCT  <span class="comment">//停止执行并注册帐户以进行删除逻辑操作：用于比较和位逻辑的操作码：</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="逻辑运算"><a href="#逻辑运算" class="headerlink" title="逻辑运算"></a>逻辑运算</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">LT     <span class="comment">//小于比较</span></span><br><span class="line">GT     <span class="comment">//大于比较</span></span><br><span class="line">SLT    <span class="comment">//有符号小于比较</span></span><br><span class="line">SGT    <span class="comment">//有符号大于比较</span></span><br><span class="line">EQ     <span class="comment">//相等比较</span></span><br><span class="line">ISZERO <span class="comment">//简单的非运算</span></span><br><span class="line">AND    <span class="comment">//按位与操作</span></span><br><span class="line">OR     <span class="comment">//按位或操作</span></span><br><span class="line">XOR    <span class="comment">//按位异或操作</span></span><br><span class="line">NOT    <span class="comment">//按位非操作</span></span><br><span class="line">BYTE   <span class="comment">//从完整的 256 位宽字中检索单个字节</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="环境操作"><a href="#环境操作" class="headerlink" title="环境操作"></a>环境操作</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">GAS            <span class="comment">//获取可用 gas 的数量（在减少此指令的 gas 后）</span></span><br><span class="line">ADDRESS        <span class="comment">//获取当前执行账户的地址</span></span><br><span class="line">BALANCE        <span class="comment">//获取任何给定账户的账户余额</span></span><br><span class="line">ORIGIN         <span class="comment">//获取启动此 EVM 执行的 EOA 的地址</span></span><br><span class="line">CALLER         <span class="comment">//获取立即负责此执行的调用者的地址</span></span><br><span class="line">CALLVALUE      <span class="comment">//获取由负责此执行的调用者存入的以太币金额</span></span><br><span class="line">CALLDATALOAD   <span class="comment">//获取由负责此执行的调用者发送的输入数据</span></span><br><span class="line">CALLDATASIZE   <span class="comment">//获取输入数据的大小</span></span><br><span class="line">CALLDATACOPY   <span class="comment">//将输入数据复制到内存</span></span><br><span class="line">CODESIZE       <span class="comment">//获取当前环境中运行的代码大小</span></span><br><span class="line">CODECOPY       <span class="comment">//将当前环境中运行的代码复制到内存</span></span><br><span class="line">GASPRICE       <span class="comment">//获取由发起交易指定的 gas 价格</span></span><br><span class="line">EXTCODESIZE    <span class="comment">//获取任何账户的代码大小</span></span><br><span class="line">EXTCODECOPY    <span class="comment">//将任何账户的代码复制到内存</span></span><br><span class="line">RETURNDATASIZE <span class="comment">//获取当前环境中上一次调用的输出数据大小</span></span><br><span class="line">RETURNDATACOPY <span class="comment">//将上一次调用的数据输出复制到内存</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="区块操作码"><a href="#区块操作码" class="headerlink" title="区块操作码"></a>区块操作码</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BLOCKHASH  <span class="comment">//获取最近完成的 256 个区块之一的哈希</span></span><br><span class="line">COINBASE   <span class="comment">//获取区块奖励的区块受益人地址</span></span><br><span class="line">TIMESTAMP  <span class="comment">//获取区块的时间戳</span></span><br><span class="line">NUMBER     <span class="comment">//获取区块的编号</span></span><br><span class="line">DIFFICULTY <span class="comment">//获取区块的难度</span></span><br><span class="line">GASLIMIT   <span class="comment">//获取区块的 gas 限制</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="编译合约"><a href="#编译合约" class="headerlink" title="编译合约"></a>编译合约</h1><h2 id="工具准备"><a href="#工具准备" class="headerlink" title="工具准备"></a>工具准备</h2><p>笔者编译合约使用以下工具</p>
+<ul>
+<li><p>solcjs： 使用solcjs能够获得合约的二进制代码。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装solcjs</span></span><br><span class="line">npm install solcjs</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看版本</span></span><br><span class="line">solcjs -V </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">指定合约二进制代码输出路径</span></span><br><span class="line">solcjs  --bin --output-dir out example.sol </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Remix：Remix能够获得合约字节码和将字节码指定为操作码。</p>
+</li>
+</ul>
+<h2 id="编译合约-1"><a href="#编译合约-1" class="headerlink" title="编译合约"></a>编译合约</h2><p>选用remix的代码案例进行分析。下面是一个存储合约，代码函数由两部分组成。</p>
+<p>两个函数的选择器</p>
+<ul>
+<li>store(uint256)：6057361d</li>
+<li>retrieve()：2e64cec1</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: GPL-3.0</span><br><span class="line"></span><br><span class="line">pragma solidity &gt;=0.8.2 &lt;0.9.0;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * @title Storage</span><br><span class="line"> * @dev Store &amp; retrieve value in a variable</span><br><span class="line"> * @custom:dev-run-script ./scripts/deploy_with_ethers.ts</span><br><span class="line"> */</span><br><span class="line">contract Storage &#123;</span><br><span class="line"></span><br><span class="line">    uint256 number;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @dev Store value in variable</span><br><span class="line">     * @param num value to store</span><br><span class="line">     */</span><br><span class="line">    function store(uint256 num) public &#123;</span><br><span class="line">        number = num;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @dev Return value </span><br><span class="line">     * @return value of &#x27;number&#x27;</span><br><span class="line">     */</span><br><span class="line">    function retrieve() public view returns (uint256)&#123;</span><br><span class="line">        return number;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="字节码分析"><a href="#字节码分析" class="headerlink" title="字节码分析"></a>字节码分析</h2><p>该部分字节码通过remix获得。object部分对应合约字节码，opcode部分对应字节码的操作码。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">&quot;object&quot;</span>: <span class="string">&quot;608060405234801561000f575f80fd5b506101438061001d5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c80632e64cec1146100385780636057361d14610056575b5f80fd5b610040610072565b60405161004d919061009b565b60405180910390f35b610070600480360381019061006b91906100e2565b61007a565b005b5f8054905090565b805f8190555050565b5f819050919050565b61009581610083565b82525050565b5f6020820190506100ae5f83018461008c565b92915050565b5f80fd5b6100c181610083565b81146100cb575f80fd5b50565b5f813590506100dc816100b8565b92915050565b5f602082840312156100f7576100f66100b4565b5b5f610104848285016100ce565b9150509291505056fea26469706673582212205b47cee55f559ebab97cf0c7dc7a6cef1aba6f07a98a0a25c74b22ba6701722364736f6c63430008160033&quot;</span>,</span><br><span class="line">	<span class="string">&quot;opcodes&quot;</span>: <span class="string">&quot;PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0xF JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH2 0x143 DUP1 PUSH2 0x1D PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH2 0xF JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x4 CALLDATASIZE LT PUSH2 0x34 JUMPI PUSH0 CALLDATALOAD PUSH1 0xE0 SHR DUP1 PUSH4 0x2E64CEC1 EQ PUSH2 0x38 JUMPI DUP1 PUSH4 0x6057361D EQ PUSH2 0x56 JUMPI JUMPDEST PUSH0 DUP1 REVERT JUMPDEST PUSH2 0x40 PUSH2 0x72 JUMP JUMPDEST PUSH1 0x40 MLOAD PUSH2 0x4D SWAP2 SWAP1 PUSH2 0x9B JUMP JUMPDEST PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 RETURN JUMPDEST PUSH2 0x70 PUSH1 0x4 DUP1 CALLDATASIZE SUB DUP2 ADD SWAP1 PUSH2 0x6B SWAP2 SWAP1 PUSH2 0xE2 JUMP JUMPDEST PUSH2 0x7A JUMP JUMPDEST STOP JUMPDEST PUSH0 DUP1 SLOAD SWAP1 POP SWAP1 JUMP JUMPDEST DUP1 PUSH0 DUP2 SWAP1 SSTORE POP POP JUMP JUMPDEST PUSH0 DUP2 SWAP1 POP SWAP2 SWAP1 POP JUMP JUMPDEST PUSH2 0x95 DUP2 PUSH2 0x83 JUMP JUMPDEST DUP3 MSTORE POP POP JUMP JUMPDEST PUSH0 PUSH1 0x20 DUP3 ADD SWAP1 POP PUSH2 0xAE PUSH0 DUP4 ADD DUP5 PUSH2 0x8C JUMP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH0 DUP1 REVERT JUMPDEST PUSH2 0xC1 DUP2 PUSH2 0x83 JUMP JUMPDEST DUP2 EQ PUSH2 0xCB JUMPI PUSH0 DUP1 REVERT JUMPDEST POP JUMP JUMPDEST PUSH0 DUP2 CALLDATALOAD SWAP1 POP PUSH2 0xDC DUP2 PUSH2 0xB8 JUMP JUMPDEST SWAP3 SWAP2 POP POP JUMP JUMPDEST PUSH0 PUSH1 0x20 DUP3 DUP5 SUB SLT ISZERO PUSH2 0xF7 JUMPI PUSH2 0xF6 PUSH2 0xB4 JUMP JUMPDEST JUMPDEST PUSH0 PUSH2 0x104 DUP5 DUP3 DUP6 ADD PUSH2 0xCE JUMP JUMPDEST SWAP2 POP POP SWAP3 SWAP2 POP POP JUMP INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 JUMPDEST SELFBALANCE 0xCE 0xE5 PUSH0 SSTORE SWAP15 0xBA 0xB9 PUSH29 0xF0C7DC7A6CEF1ABA6F07A98A0A25C74B22BA6701722364736F6C634300 ADDMOD AND STOP CALLER &quot;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="合约部署"><a href="#合约部署" class="headerlink" title="合约部署"></a>合约部署</h3><p>使用remix的调试器对合约部署交易进行分析。合约部署时，EVM会执行到字节码第27字节时结束。下面开始分析合约部署时，opcode的逻辑。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_2.png" alt="set_2"></p>
+<p>合约部署相关操作码主要发生在第15-27字节之间。我们可以先通过前四个指令开始研究EVM指令集是怎样工作的。</p>
+<p>首先push1是将1字节压入栈中，可以使用push32指令可以压入32字节到栈。指令进行了两次push1操作</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE </span><br></pre></td></tr></table></figure>
+
+<p>然后使用了mstore（offset,vaule）将0x08存入内存中。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_3.png" alt="set_3"></p>
+<p>下一个操作码是CALLVALUE，这是一个环境操作码，它将启动此执行的消息调用发送的以太数量(以wei为单位)推到堆栈的顶部。</p>
+<p>合约部署时会通过codecopy将合约操作码copy到内存中，在代码执行到jump时，会跳转到0xf位置，即下面的JUMPDEST。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JUMPDEST POP PUSH2 0x143 DUP1 PUSH2 0x1D PUSH0 CODECOPY PUSH0 RETURN</span><br></pre></td></tr></table></figure>
+
+<p>此时栈的状态如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_4.png" alt="set_4"></p>
+<p>让我们跳到最重要的一步：codecopy(destOffset, offset, size)，该指令会将当前环境下运行的代码复制到内存中，其中destOffset是复制到内存的偏移量，offset是复制代码中的字节偏移量，size是复制的代码字节大小。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_5.png" alt="set_5"></p>
+<p>codecopy从栈顶拿到三个值，复制到代码0x00位置，从当前环境（calldata）中的1d位置开始，大小为143字节。可以看到memory中复制的字节码。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_6.png" alt="set_6"></p>
+<h3 id="执行函数"><a href="#执行函数" class="headerlink" title="执行函数"></a>执行函数</h3><p>使用remix调用store函数，存入5到合约中。交易的calldata如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;0x6057361d0000000000000000000000000000000000000000000000000000000000000005&quot;</span><br></pre></td></tr></table></figure>
+
+<p>执行store函数时从第26字节开始，第26字节位置使用了calldataload（i）。calldataload是从calldata指定偏移i读取32字节到栈中。然后通过shr（shift, value）将value向右偏移0xE0位</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CALLDATALOAD PUSH1 0xE0 SHR </span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_7.png" alt="set_7"></p>
+<p>calldata读到的是store的函数选择器，指令会比较函数选择器跳转到相应位置。下面两行是两个函数选择器，根据操作码逻辑，先使用dup对栈中0的值进行复制，然后push4 向栈中推入retrieve()的选择器进行比较，eq会返回0。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DUP1 PUSH4 0x2E64CEC1 EQ PUSH2 0x38 JUMPI </span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_8.png" alt="set_8"></p>
+<p>jumpI(counter, b)能跳转到其他指令，其中counter是将继续执行的部署代码中的字节偏移量（跳到的指令必须是JUMPDEST），b当该值不等于0是才会跳转。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_9.png" alt="set_9"></p>
+<p>同上，但是该段操作码能够跳转到0x56位置(注意remix使用十进制对应指令位置，即跳转到86)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DUP1 PUSH4 0x6057361D EQ PUSH2 0x56 JUMPI</span><br></pre></td></tr></table></figure>
+
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_10.png" alt="set_10"></p>
+<p>现在我们直接跳到即将结束的一步，EVM会使用sstore（key,value）将给定的参数5存储在对应合约地址的key-0:value-5的位置。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_11.png" alt="set_11"></p>
+<p>使用sstore后storage变化</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/EVM/set_12.png" alt="set_12"></p>
+<h1 id="使用内联汇编减少gas消耗"><a href="#使用内联汇编减少gas消耗" class="headerlink" title="使用内联汇编减少gas消耗"></a>使用内联汇编减少gas消耗</h1><p>上面我们学习了指令集，不仅调试的时候可以使用它进行分析，我们还能够使用它在solidity中写内联汇编。可以通过assembly块开始一段代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">assembly&#123;</span><br><span class="line">	// EVM汇编语言</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面进行一个简单的演示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract assTest&#123;</span><br><span class="line"></span><br><span class="line">    function add1(uint256 a, uint256 b) public pure returns (uint) &#123;</span><br><span class="line">        return a + b;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    function add2(uint x, uint y) public pure returns (uint) &#123;</span><br><span class="line">        assembly &#123;</span><br><span class="line">            let result := add(x, y)   </span><br><span class="line">            mstore(0x0, result)       </span><br><span class="line">            return(0x0, 32)       </span><br><span class="line">        &#125;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从remix的获得的两个函数消耗gas进行比较</p>
+<ul>
+<li>前者使用：949 gas</li>
+<li>后者使用：561 gas</li>
+</ul>
+<p>引用：</p>
+<p>1.<a target="_blank" rel="noopener" href="https://github.com/ethereumbook/ethereumbook/blob/develop/13evm.asciidoc">ethereumbook&#x2F;13evm.asciidoc at develop · ethereumbook&#x2F;ethereumbook (github.com)</a></p>
+<p>2.<a target="_blank" rel="noopener" href="https://www.evm.codes/">EVM Codes - An Ethereum Virtual Machine Opcodes Interactive Reference</a></p>
+
+<div class="article-footer fs14">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/11/%E6%B7%B1%E5%85%A5EVM(%E4%B8%80)/">深入EVM(一)-EVM架构</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Salbt</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1">Stellar 1.28.1</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#EVM%E6%8C%87%E4%BB%A4%E9%9B%86"><span class="toc-text">EVM指令集</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%97%E6%9C%AF%E8%BF%90%E7%AE%97"><span class="toc-text">算术运算</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A0%86%E6%A0%88%E6%93%8D%E4%BD%9C"><span class="toc-text">堆栈操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6%E6%93%8D%E4%BD%9C%E7%A0%81"><span class="toc-text">流程控制操作码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E6%93%8D%E4%BD%9C"><span class="toc-text">系统操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97"><span class="toc-text">逻辑运算</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%93%8D%E4%BD%9C"><span class="toc-text">环境操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8C%BA%E5%9D%97%E6%93%8D%E4%BD%9C%E7%A0%81"><span class="toc-text">区块操作码</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%90%88%E7%BA%A6"><span class="toc-text">编译合约</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E5%87%86%E5%A4%87"><span class="toc-text">工具准备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%90%88%E7%BA%A6-1"><span class="toc-text">编译合约</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-text">字节码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E7%BA%A6%E9%83%A8%E7%BD%B2"><span class="toc-text">合约部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E5%87%BD%E6%95%B0"><span class="toc-text">执行函数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%86%85%E8%81%94%E6%B1%87%E7%BC%96%E5%87%8F%E5%B0%91gas%E6%B6%88%E8%80%97"><span class="toc-text">使用内联汇编减少gas消耗</span></a></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a><a class="buttom" onclick="util.scrollComment()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.46 1.25h3.08c1.603 0 2.86 0 3.864.095c1.023.098 1.861.3 2.6.752a5.75 5.75 0 0 1 1.899 1.899c.452.738.654 1.577.752 2.6c.095 1.004.095 2.261.095 3.865v1.067c0 1.141 0 2.036-.05 2.759c-.05.735-.153 1.347-.388 1.913a5.75 5.75 0 0 1-3.112 3.112c-.805.334-1.721.408-2.977.43a10.81 10.81 0 0 0-.929.036c-.198.022-.275.054-.32.08c-.047.028-.112.078-.224.232c-.121.166-.258.396-.476.764l-.542.916c-.773 1.307-2.69 1.307-3.464 0l-.542-.916a10.605 10.605 0 0 0-.476-.764c-.112-.154-.177-.204-.224-.232c-.045-.026-.122-.058-.32-.08c-.212-.023-.49-.03-.93-.037c-1.255-.021-2.171-.095-2.976-.429A5.75 5.75 0 0 1 1.688 16.2c-.235-.566-.338-1.178-.389-1.913c-.049-.723-.049-1.618-.049-2.76v-1.066c0-1.604 0-2.86.095-3.865c.098-1.023.3-1.862.752-2.6a5.75 5.75 0 0 1 1.899-1.899c.738-.452 1.577-.654 2.6-.752C7.6 1.25 8.857 1.25 10.461 1.25M6.739 2.839c-.914.087-1.495.253-1.959.537A4.25 4.25 0 0 0 3.376 4.78c-.284.464-.45 1.045-.537 1.96c-.088.924-.089 2.11-.089 3.761v1c0 1.175 0 2.019.046 2.685c.045.659.131 1.089.278 1.441a4.25 4.25 0 0 0 2.3 2.3c.515.214 1.173.294 2.429.316h.031c.398.007.747.013 1.037.045c.311.035.616.104.909.274c.29.17.5.395.682.645c.169.232.342.525.538.856l.559.944a.52.52 0 0 0 .882 0l.559-.944c.196-.331.37-.624.538-.856c.182-.25.392-.476.682-.645c.293-.17.598-.24.909-.274c.29-.032.639-.038 1.037-.045h.032c1.255-.022 1.913-.102 2.428-.316a4.25 4.25 0 0 0 2.3-2.3c.147-.352.233-.782.278-1.441c.046-.666.046-1.51.046-2.685v-1c0-1.651 0-2.837-.089-3.762c-.087-.914-.253-1.495-.537-1.959a4.25 4.25 0 0 0-1.403-1.403c-.464-.284-1.045-.45-1.96-.537c-.924-.088-2.11-.089-3.761-.089h-3c-1.651 0-2.837 0-3.762.089" clip-rule="evenodd"/><path fill="currentColor" d="M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0"/></svg><span>参与讨论</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"codeblock":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.28.1" async></script>
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":null},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"></script><script defer src="https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css`,
+    js: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>
