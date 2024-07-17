@@ -17,32 +17,36 @@
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
   
-  <title>Maker协议介绍 - Salbt's blog</title>
+  <title>Uniswap-v2(一)-功能和原理分析 - Salbt's blog</title>
 
   
-    <meta name="description" content="分析Maker协议，介绍稳定币DAI并分析Maker能稳定DAI价格的机制">
+    <meta name="description" content="介绍Uniswap v2新增的功能，本文会深入这些功能的原理，并分析这些功能的作用和意义。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Maker协议介绍">
-<meta property="og:url" content="http://salbt.github.io/2024/05/12/Maker-Introduce/index.html">
+<meta property="og:title" content="Uniswap-v2(一)-功能和原理分析">
+<meta property="og:url" content="http://salbt.github.io/2024/07/17/Uniswap-v2(%E4%B8%80)%E5%8A%9F%E8%83%BD%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="Salbt&#39;s blog">
-<meta property="og:description" content="分析Maker协议，介绍稳定币DAI并分析Maker能稳定DAI价格的机制">
+<meta property="og:description" content="介绍Uniswap v2新增的功能，本文会深入这些功能的原理，并分析这些功能的作用和意义。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://salbt.github.io/images/posts/Maker-Introduce/vault.png">
-<meta property="og:image" content="http://salbt.github.io/images/posts/Maker-Introduce/makerParticipation.png">
-<meta property="og:image" content="http://salbt.github.io/images/posts/Maker-Introduce/makerdata1.png">
-<meta property="og:image" content="http://salbt.github.io/images/posts/Maker-Introduce/makerdata2.png">
-<meta property="article:published_time" content="2024-05-12T05:42:59.000Z">
-<meta property="article:modified_time" content="2024-07-13T09:32:10.154Z">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_1.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_2.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_6.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_7.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_5.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_4.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_3.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_8.jpg">
+<meta property="article:published_time" content="2024-07-17T15:57:23.000Z">
+<meta property="article:modified_time" content="2024-07-17T16:14:03.958Z">
 <meta property="article:author" content="Salbt">
-<meta property="article:tag" content="DAI">
-<meta property="article:tag" content="Maker">
-<meta property="article:tag" content="稳定币">
+<meta property="article:tag" content="uniswap">
+<meta property="article:tag" content="defi">
+<meta property="article:tag" content="code">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://salbt.github.io/images/posts/Maker-Introduce/vault.png">
+<meta name="twitter:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_1.jpg">
   
   
   
-  <meta name="keywords" content="DAI, Maker, 稳定币">
+  <meta name="keywords" content="uniswap,defi,code">
 
   <!-- feed -->
   
@@ -85,124 +89,110 @@
 <div class="article banner top">
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/">区块链</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/MakerPotocol/">MakerPotocol</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-05-12T05:42:59.000Z">2024-05-12</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-07-13T09:32:10.154Z">2024-07-13</time></span></div></div></div>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/">区块链</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/Uniswap/">Uniswap</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-07-17T15:57:23.000Z">2024-07-17</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-07-17T16:14:03.958Z">2024-07-18</time></span></div></div></div>
     
     <div class="bottom only-title">
       
       <div class="text-area">
-        <h1 class="text title"><span>Maker协议介绍</span></h1>
+        <h1 class="text title"><span>Uniswap-v2(一)-功能和原理分析</span></h1>
         
       </div>
     </div>
     
   </div>
-  </div><article class="md-text content"><h1 id="DAI"><a href="#DAI" class="headerlink" title="DAI"></a>DAI</h1><p><strong>稳定币</strong>：由于比特币、以太坊这些加密货币的价值波动太大，不能在正常生活中作为现金使用。所以需要一些具有稳定价值的加密货币进行日常的交易和使用。</p>
+  </div><article class="md-text content"><h1 id="Uniswap-v2"><a href="#Uniswap-v2" class="headerlink" title="Uniswap-v2"></a>Uniswap-v2</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>uniswap-v1在以太坊链上基于”constant product formula”（恒定乘积公式）实现了AMM。v1能为每两个资产提供流动性，并从中收取一定的交易费用于支付给流动性提供者（LP，Liquidity Provider）。</p>
+<h2 id="新增功能"><a href="#新增功能" class="headerlink" title="新增功能"></a>新增功能</h2><p>uniswap-v2是基于v1新增了许多功能，下面介绍v2主要新增的功能：</p>
+<ul>
+<li>允许任意erc20&#x2F;erc20 pair</li>
+<li>flash swap</li>
+<li>使用时间加权平均估算价格</li>
+<li>协议费用开关</li>
+</ul>
+<h1 id="支持任意的ERC20-pair"><a href="#支持任意的ERC20-pair" class="headerlink" title="支持任意的ERC20 pair"></a>支持任意的ERC20 pair</h1><p>与v1不同，v2支持了任意 ERC20&#x2F;ERC20 pair之间交易。为了理解v2是怎样优化v1这部分功能，我们用uniswap白皮书中的例子进行讲解。</p>
+<p>对于一个 ABC 和 XYZ的交易池。</p>
+<ul>
+<li><p>v1：如果使用v1协议创建这两个ERC20 pair，需要创建ABC&#x2F;ETH，XYZ&#x2F;ETH两个交易池。其中ABC&#x2F;XYZ需要经过ETH作为桥接货币。</p>
 <blockquote>
-<p>稳定币有三种类型：基于法定货币抵押的稳定比，如：USDT、USDC。基于加密资产超额抵押的稳定比，如：DAI。基于算法的稳定币，如：AMPL</p>
-<p>*USDT的中心性，因为其代码包括对用户账户拉入黑名单，甚至进一步进行销毁账户持有USDT的操作</p>
+<p>因为v1的代码决定了它只能创建ERC20和ETH的交易池。</p>
 </blockquote>
-<p>DAI是一种稳定币，能与美元（货币）进行等值兑换， 通过<strong>抵押数字资产</strong>发行，能与美元（货币）进行等值兑换。1$ &#x3D; 1DAI。</p>
-<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><p>SCD（Single-Collateral DAI, SCD）：SCD是单担保DAI，早期DAI系统只支持eth作为担保资产，现在已经支持多担保DAI（MCD）</p>
-<p>MakerDAO ：MakerDAO是Maker系统的去中心化自治组织，MakerDAO的治理者们使用MKR参与系统的维护和DAI的管理</p>
-<p>Maker： Maker是以太坊上的智能合约平台，能够通过CDP、自动化反馈机制和适当的外部激励手段支持并稳定DAI价格</p>
-<blockquote>
-<p>MRK是Maker协议治理代币，MKR的持有者通过执行投票（Executive Voting）和治理投票（Governance Polling）对Maker系统进行治理。MKR的持有者还可以通过Maker的运营中获得利润</p>
-<p>投票会锁定MRK代币，一票等于一个MKR代币（MKR持有者可以将MKR存入投票合约以获得投票权重）</p>
-<p>Maker Vault是合约用于质押资产生成DAI代币的智能合约机制，DAI用户可以通过向中介（交易所）购买或质押资产得到DAI</p>
-</blockquote>
-<p>CDP（Collateralized Debt Positions, CDP）——抵债仓库： 保存用户所存储的抵债资产，并允许用户生成DAI，一旦生成DAI就代表生成例一笔债务。</p>
-<blockquote>
-<p>CDP会锁定资产，知道用户偿还DAI后才可以拿回资产。CDP能够进行超额抵押，可完成像杠杆的金融操作</p>
-</blockquote>
-<p>DSR（DAI Savings Rate，DSR）：DAI 存款利率，通过将用户持有的DAI锁入Maker协议的DSR合约就可以获得额外的DAI收益</p>
-<h1 id="Maker协议"><a href="#Maker协议" class="headerlink" title="Maker协议"></a>Maker协议</h1><p>DAI也是加密货币的一种，用户可以使用ETH或Bitcoin抵押兑换DAI代币。为了保证1 DAI能兑换1 $，DAI设计者对DAI设计了一系列机制来确保DAI的稳定</p>
-<h2 id="Vault——Maker抵押仓库"><a href="#Vault——Maker抵押仓库" class="headerlink" title="Vault——Maker抵押仓库"></a>Vault——Maker抵押仓库</h2><p>过程：</p>
+</li>
+<li><p>v2：支持了创建任意两个ERC20 pair，能够直接创建 ABC&#x2F;XYZ 的交易池。不需要经过ETH桥接。</p>
+</li>
+</ul>
+<p>v2的这项功能优点：</p>
 <ol>
-<li>用户向Maker发送交易创建CDP，然后充值一定数量的抵押品（ETH, Bitcoin）</li>
-<li>Vault所有者可以生成一笔交易，在交易中通过调整CPD（中的抵押率）选择需要生成的DAI数量</li>
-<li>取回自己的抵押品，需要使用 DAI（赎回费用）+ Stability Fee（手续费），手续费需要使用DAI支付</li>
-<li>用户支付了一定DAI后，用户就能发送一个交易给MKR并取回所有抵押资产</li>
+<li>解决了v1的ETH&#x2F;ABC pair和 ETH&#x2F;XYZ  pair这种交易对带来的碎片化。</li>
+<li>v1的LP需要提供两倍于v2的LP的资产才能创建相同资产数量的ABC&#x2F;XYZ pair。</li>
+<li>对于LP来说，使用v1添加 ABC&#x2F;XYZ pair还需要提供ETH作为这两者桥接货币，那么LP也会面临ETH与ABC、XYZ的无偿损失。而v2的LP直接需要面对ABC与XYZ的无偿损失。</li>
 </ol>
-<p>DAI的抵押案例</p>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/Maker-Introduce/vault.png"></p>
-<h2 id="Maker清算机制"><a href="#Maker清算机制" class="headerlink" title="Maker清算机制"></a>Maker清算机制</h2><p>1.当ETH升值时</p>
-<p>​	用户能够获得更多抵押DAI</p>
-<p>2.当ETH贬值时</p>
-<p>在DAI中会有keeper对市场进行监控，如果抵押率超过的安全区就会<strong>触发清算</strong></p>
+<p>假设 ABC、XYZ是稳定币，v1的无偿损失会比v2的无偿损失更大。下图无偿损失例子计算：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_1.jpg" alt="v2_1"></p>
+<h1 id="闪电贷-Flash-Swap"><a href="#闪电贷-Flash-Swap" class="headerlink" title="闪电贷(Flash Swap)"></a>闪电贷(Flash Swap)</h1><p>闪电贷（Flash Swap）：闪电贷是区块链一个特殊的机制。用户被允许在一个区块内自由借出资金，并在这个区块归还资金和其费用，整个借贷过程无需任何抵押品。</p>
 <blockquote>
-<p>用户CPD设置为300%，DAI市场安全区在150%，当CPD小于150%就会触发清算 </p>
+<p> 为什么会有闪电贷？</p>
+<p> 区块链的原子性：我们知道比特币、以太坊等区块链只有在区块上链时区块链状态才会发生改变。这就意味着想要通过一系列交易改变某个状态需要这些交易都能成功并被打包上链，这就是区块链的原子性。</p>
+<p> 没有归还贷款可以revert：在区块链里我们可以检查一个区块里借出的贷款是否在这个区块内被归还，这是由合约逻辑决定的。如果这个区块内没有归还贷款，合约就会revert交易。</p>
+<p> 区块链的原子性导致了闪电贷的出现：闪电贷是无需任何抵押品的，这是因为用户没有在区块内归还贷款，那么发出借贷的交易永远不可能上链，该用户的资产状态也不可能有任何变化。</p>
 </blockquote>
-<p>​	用户面临清算会以下面三个步骤进行：</p>
-<ul>
-<li>Collateral Auction（抵押品拍卖）</li>
-<li>Debt Auction（债务拍卖）</li>
-<li>Surplus Auction（盈余拍卖）</li>
+<h2 id="闪电贷有什么应用"><a href="#闪电贷有什么应用" class="headerlink" title="闪电贷有什么应用"></a>闪电贷有什么应用</h2><ul>
+<li>套利：比如现在有两个类似uniswap的交易所，其中一个以太坊价格为3500$，另一个为3700$。那么套利者可以使用闪电贷在3500$的交易所买入一个ETH，然后在另一个交易所以3700$的价格出售。整个过程套利者只需支付闪电贷一点点手续费就能获得200$的利润。</li>
+<li>再融资贷款：一些常规的借贷DeFi会需要抵押品，比如1eth能抵押出2000DAI。当用户借出的DAI用于其他项目时，用户可以使用闪电贷赎回自己eth，并用部分eth偿还闪电贷。</li>
+<li>偿还即将清算的抵押品：像Maker这类协议，用户抵押品清算时会受到一笔清算惩罚，抵押品会用于归还债务和扣除10%的惩罚，剩下返回给用户。为了避免清算惩罚，可以使用闪电贷赎回抵押品，然后用抵押品归还闪电贷，这样就能规避清算惩罚。</li>
 </ul>
-<p>Maker协议会根据清算率去对用户的vault当前的价值进行判断。每个类型的vault都有各自的清算率，MKR持有者可以通过投票来进行调整</p>
-<p>面临清算前有两种方式可以避免：一是可以抵押更多的ETH，二是偿还部分DAI的债务</p>
-<h3 id="Collateral-Auction"><a href="#Collateral-Auction" class="headerlink" title="Collateral Auction"></a>Collateral Auction</h3><p>当用户面临清算时不采取任何措施就会触发Collateral Auction。该机制会将用户的质押品进行拍卖（通过Maker的拍卖机制），拍卖得到的DAI会用于偿还债务。</p>
-<p>如果拍卖得到的DAI多于清算罚金（Penalty Fee），还会触发<strong>反向担保品竞拍（Reverse Collateral Auction）</strong>，将除去清算罚金后的DAI返还给用户。如果拍卖得到的DAI不足以偿还，债务就会由Maker解决</p>
-<blockquote>
-<p>拍卖获取的DAI会立马用于偿还债务，这部分DAI会被销毁</p>
-</blockquote>
-<h3 id="Debt-Auction"><a href="#Debt-Auction" class="headerlink" title="Debt Auction"></a>Debt Auction</h3><p>在拍卖得到的DAI不足以偿还债务时，亏损会由Maker承担。Maker会有一个专门用于处理该亏损的缓冲金池子（Maker Buffer）。</p>
-<p>如果Maker Buffer没有足够的DAI，Maker协议会触发<strong>Debt Auction</strong>。</p>
-<p><strong>Debt Auction</strong>会mint新的MKR代币，这些MKR通过DAI作为货币进行拍卖。拍卖得到的DAI会流入Maker Buffer</p>
-<h3 id="Surplus-Auction"><a href="#Surplus-Auction" class="headerlink" title="Surplus Auction"></a>Surplus Auction</h3><p>竞拍和稳定费的DAI都会流入Maker buffer中，Maker buffer会有一个上限。当Maker Buffer的DAI超过这个上限，就会触发<strong>Surplus Auction</strong> 。</p>
-<p>即，MKR持有者可以使用MRK去竞拍固定数量的DAI。当Surplus Auction结束时，Maker协议会销毁掉拍卖所得的MRK从而减少MRK的供应量</p>
-<h1 id="MakerDAO"><a href="#MakerDAO" class="headerlink" title="MakerDAO"></a>MakerDAO</h1><p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/Maker-Introduce/makerParticipation.png"></p>
-<h2 id="Maker协议的外部参与者"><a href="#Maker协议的外部参与者" class="headerlink" title="Maker协议的外部参与者"></a>Maker协议的外部参与者</h2><p>Maker协议的运作需要依靠各种外部参与者：Keeper、Oracle、Global Settler和Maker社区成员</p>
-<h3 id="Keeper——看护者"><a href="#Keeper——看护者" class="headerlink" title="Keeper——看护者"></a>Keeper——看护者</h3><p>keeper通常是独立的参与者，他们会在套利机制下为去中心化系统提供流动性。比如，在DAI价格低于1$时，他们会将其买入；在DAI价格高于1$时，他们会将其卖出。Keeper的行为会帮助DAI维持在1$左右。Keeper也会参与Collateral Auction、Debt Auction、Surplus Auction</p>
-<h3 id="Oracle——预言机"><a href="#Oracle——预言机" class="headerlink" title="Oracle——预言机"></a>Oracle——预言机</h3><p>Maker协议需要实时地了解到市场上的担保物价值，从而能够知道何时触发清算机制。Oracle就是能够提供实时的信息的对象。</p>
-<blockquote>
-<p>Maker 协议的内部担保物价格来自<a target="_blank" rel="noopener" href="https://blog.makerdao.com/introducing-oracles-v2-and-defi-feeds/">去中心化信息输入架构（decentralized Oracle infrastructure）</a> 。该架构由大量名为 “喂价机（Oracle Feed）” 的独立节点组成。MKR 投票者选出一组可信赖的喂价节点，并由通过以太坊交易向 Maker 系统提供价格信息。群组的节点数量也是由 MKR 投票者来控制的。</p>
-</blockquote>
-<h3 id="Global-Settler——全局清算者"><a href="#Global-Settler——全局清算者" class="headerlink" title="Global Settler——全局清算者"></a>Global Settler——全局清算者</h3><p>Global Settler也叫<strong>Emergency Oracle</strong>。他是由MRK持有者投票选举出来的，是为了在Maker协议遭到破坏（治理流程或Oracle被攻击）而导致重大损失的策略。</p>
-<p>Global Settler拥有冻结单个Oracle，触发紧急关停机制（Emergency Shutdown）的权力。</p>
-<h2 id="MKR治理代币"><a href="#MKR治理代币" class="headerlink" title="MKR治理代币"></a>MKR治理代币</h2><p>Maker协议是双币模型，协议使用DAI作为稳定代币，MKR作为Maker的治理代币。</p>
-<p>MKR holder能够参与投票去修改Maker协议。Maker协议面临一些紧急情况时，这些holder能触发关停机制。</p>
-<p>MKR 持有者可以对以下事项进行票决：</p>
+<h2 id="ERC3156-闪电贷实现标准"><a href="#ERC3156-闪电贷实现标准" class="headerlink" title="ERC3156-闪电贷实现标准"></a>ERC3156-闪电贷实现标准</h2><p>flash Swap使用ERC3156标准实现。ERC3156有两个合约接口需要实现，分别是FlashBorrower和FlashLender。</p>
+<p>借出方需要实现接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity &gt;=0.6.0 &lt;0.9.0;</span><br><span class="line">import &quot;./IERC3156FlashBorrower.sol&quot;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">interface IERC3156FlashLender &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @dev The amount of currency available to be lended.</span><br><span class="line">     * @param token The loan currency.</span><br><span class="line">     * @return The amount of `token` that can be borrowed.</span><br><span class="line">     */</span><br><span class="line">    function maxFlashLoan(</span><br><span class="line">        address token</span><br><span class="line">    ) external view returns (uint256);</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @dev The fee to be charged for a given loan.</span><br><span class="line">     * @param token The loan currency.</span><br><span class="line">     * @param amount The amount of tokens lent.</span><br><span class="line">     * @return The amount of `token` to be charged for the loan, on top of the returned principal.</span><br><span class="line">     */</span><br><span class="line">    function flashFee(</span><br><span class="line">        address token,</span><br><span class="line">        uint256 amount</span><br><span class="line">    ) external view returns (uint256);</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @dev Initiate a flash loan.</span><br><span class="line">     * @param receiver The receiver of the tokens in the loan, and the receiver of the callback.</span><br><span class="line">     * @param token The loan currency.</span><br><span class="line">     * @param amount The amount of tokens lent.</span><br><span class="line">     * @param data Arbitrary data structure, intended to contain user-defined parameters.</span><br><span class="line">     */</span><br><span class="line">    function flashLoan(</span><br><span class="line">        IERC3156FlashBorrower receiver,</span><br><span class="line">        address token,</span><br><span class="line">        uint256 amount,</span><br><span class="line">        bytes calldata data</span><br><span class="line">    ) external returns (bool);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>贷款方需要实现接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity &gt;=0.6.0 &lt;0.9.0;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">interface IERC3156FlashBorrower &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * @dev Receive a flash loan.</span><br><span class="line">     * @param initiator The initiator of the loan.</span><br><span class="line">     * @param token The loan currency.</span><br><span class="line">     * @param amount The amount of tokens lent.</span><br><span class="line">     * @param fee The additional amount of tokens to repay.</span><br><span class="line">     * @param data Arbitrary data structure, intended to contain user-defined parameters.</span><br><span class="line">     * @return The keccak256 hash of &quot;ERC3156FlashBorrower.onFlashLoan&quot;</span><br><span class="line">     */</span><br><span class="line">    function onFlashLoan(</span><br><span class="line">        address initiator,</span><br><span class="line">        address token,</span><br><span class="line">        uint256 amount,</span><br><span class="line">        uint256 fee,</span><br><span class="line">        bytes calldata data</span><br><span class="line">    ) external returns (bytes32);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实现代码可以参考：<a target="_blank" rel="noopener" href="https://github.com/alcueca/ERC3156/tree/main">https://github.com/alcueca/ERC3156/tree/main</a></p>
+<h1 id="时间加权平均强化的价格预言机"><a href="#时间加权平均强化的价格预言机" class="headerlink" title="时间加权平均强化的价格预言机"></a>时间加权平均强化的价格预言机</h1><p>价格预言机是向区块链提供各种加密货币价格的信息输入机。Uniswap作为一个去中心化交易所，它也具备有提供价格信息的能力。</p>
+<p>Uniswap v1的价格是由交易池中两种货币的比率(ratio)，这种瞬时的价格是及其容易被操控的。比如：攻击者可以通过使用闪电贷使价格发生剧烈变化，然后对使用uniswap预言机价格进行决策的合约进行攻击。</p>
+<p>Uniswap v2使用TWAP作为价格预言机的机制，它通过两种方式解决v1的问题：</p>
 <ul>
-<li>引入新的担保物类型，并为其设置一组风险参数</li>
-<li>修改、乃至增加一种或多种现有担保物资产类型的风险参数</li>
-<li>修改 DAI 存款利率</li>
-<li>选出喂价机节点群组</li>
-<li>选出紧急信息输入者群组</li>
-<li>触发紧急关停</li>
-<li>升级系统</li>
+<li>价格取决于过去一段时间价格的平均值。</li>
+<li>当前的价格不会被计算到oracle中。</li>
 </ul>
-<p>对MKR holder的激励——Maker协议产生的部分收入会用于奖励MKR holder，这些奖励也会影响他们做出对Maker协议有利的决策</p>
-<h2 id="MakerDAO的盈利来源和其分配"><a href="#MakerDAO的盈利来源和其分配" class="headerlink" title="MakerDAO的盈利来源和其分配"></a>MakerDAO的盈利来源和其分配</h2><p>为了了解MakerDAO的来源，我们必须要清楚以下参数</p>
-<p><strong>稳定费（Stability Fee）</strong>： 稳定费是根据一个金库所生成的 DAI 数量来计算的年利息（对生成 DAI 的用户来说，稳定费率相当于贷款的年化利率</p>
-<p><strong>清算罚金（Liquidation Penalty）</strong>：清算罚金是当清算发生时，根据金库中未偿还 DAI 的总量向用户收取的额外一笔费用</p>
-<h3 id="Maker的盈利收入"><a href="#Maker的盈利收入" class="headerlink" title="Maker的盈利收入"></a>Maker的盈利收入</h3><ol>
-<li><p>Vault生成的DAI所需的稳定费</p>
-<p>当用户通过不同的Token生成Vault以获得DAI，都会有一笔Stability Fee，这笔Fee会在vault关闭或清算时进行结算</p>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/Maker-Introduce/makerdata1.png"></p>
-</li>
-<li><p>拍卖清算获得的清算罚金</p>
-<p>在用户vault清算后，需要向maker系统支付一笔Liquidation Penalty + Stability Fee</p>
-<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/Maker-Introduce/makerdata2.png"></p>
-</li>
-<li><p>RWAs（Real World Asserts）,购买现实世界的资产以获取收益；如，美国国债等</p>
-<p>RWAs现在成为了Maker利息的主要收入</p>
+<h2 id="TWAP"><a href="#TWAP" class="headerlink" title="TWAP"></a>TWAP</h2><p>时间加权平均价格(Time Weighted Average Price)：Uniswap v2使用一个时间加权的价格累加器作为快照，然后用这个累加器除以累加器经过的时间得到时间加权平均价格。</p>
 <blockquote>
-<p>让我用 Clydesdale 举个例子。本质上，Clydesdale 建立一个 SPV 并从 Maker 借入 DAI。然后此 DAI 通过 PSM 兑换为 USDC，并兑换成美元现金。这些美元现金然后用于购买国债，国债由 SPV 持有，作为借入 DAI 的抵押品。Clydesdale 从管理 SPV 中赚取少量报酬，剩余的美国国债利息归 Maker。</p>
+<p>注明：Ti是价格Pi所处的一段时间，ti是价格Pi所处的时刻</p>
 </blockquote>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_2.jpg" alt="v2_2"></p>
+<p>当我们对现在，假设是t<sub>4</sub>到之后t<sub>7</sub>的价格感兴趣，我们可以记录当下的累加器快照和t<sub>7</sub>时刻累加器的快照。计算方式如下：</p>
+<p><code>(P4*T4+P5*T5+P6*T6+P7*T7)/(T4+T5+T6+T7)</code></p>
+<p>即 <code>(a7-a4)/(t4-t1)</code></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_6.jpg" alt="v2_6"></p>
+<h2 id="TWAP需要解决的问题"><a href="#TWAP需要解决的问题" class="headerlink" title="TWAP需要解决的问题"></a>TWAP需要解决的问题</h2><h3 id="跟踪两个资产TWAP"><a href="#跟踪两个资产TWAP" class="headerlink" title="跟踪两个资产TWAP"></a>跟踪两个资产TWAP</h3><p>如果你尝试计算 ETH&#x2F;DAI 和 DAI&#x2F;ETH 的TWAP，你会发现它们价格并不是呈倒数关系。比如：ETH&#x2F;DAI 的价格从100涨到300，时间为1，计算出TWAP(ETH&#x2F;DAI) &#x3D; 200。而如果使用 DAI&#x2F;ETH 进行计价，那么价格是从1&#x2F;100 跌到 1&#x2F;300，计算出TWAP(DAI&#x2F;ETH) &#x3D; 1&#x2F;150。可以看出 <code>TWAP(ETH/DAI)</code> 与 <code>TWAP(DAI/ETH)</code>不是倒数关系。所以Uniswap需要跟踪两个资产的TWAP。</p>
+<h3 id="及时更新价格"><a href="#及时更新价格" class="headerlink" title="及时更新价格"></a>及时更新价格</h3><p>在uniswap v2代码的时间累加器的更新由_updata()函数触发。这会导致以下两种情况出现：</p>
+<ol>
+<li>攻击者绕过更新累加器去更改池子的余额和价格</li>
+<li>一段时间没有触发swap这类函数去更新累加器</li>
+</ol>
+<p>这两种情况都会使得TWAP不能即使更新，为了避免这种情况，合约提供了 sync() 函数能够主动更新TWAP。</p>
+<h1 id="协议费用-Protocol-fee"><a href="#协议费用-Protocol-fee" class="headerlink" title="协议费用(Protocol fee)"></a>协议费用(Protocol fee)</h1><p>uniswap v2设置了一个协议费用(Protocol fee)，如果开启这个协议费用，每次LP添加流动性时就会为feeToSetter的地址mint一笔LPT作为协议收取的费用。增发LPT分走LP部分利润的公式如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_7.jpg" alt="v2_7"></p>
+<p>接下将通过三步逐渐分析，Uniswap v2是怎样通过上面的公式收取协议费用</p>
+<h2 id="LPT增值"><a href="#LPT增值" class="headerlink" title="LPT增值"></a>LPT增值</h2><p>通过swap的手续费，池中储备x*y会逐渐变大，LP通过添加流动性mint的LPT也会增值。LP可以通过burn LPT获得的代币也会更多。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_5.jpg" alt="v2_5"></p>
+<h2 id="增发LPT拿走LPT增值的利润"><a href="#增发LPT拿走LPT增值的利润" class="headerlink" title="增发LPT拿走LPT增值的利润"></a>增发LPT拿走LPT增值的利润</h2><p>项目方可以通过增发LPT的方式拿走池子中部分收益。下面假设协议通过增发LPT拿走LPT增值所有利润。此时LP手中持有的LPT增值为0，因为增值部分价值通过增发LPT分走了。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_4.jpg" alt="v2_4"></p>
+<p>实际上协议费只会分走一定比例的增值利润，协议费用的公式推导如下：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_3.jpg" alt="v2_3"></p>
+<p>Uniswap v2设置的φ &#x3D; 1&#x2F;6，即协议费用等于LP赚取1&#x2F;6 的利润。交易中为交易支付费用0.30%，LP可以获得池子交易费用的0.25%，协议获得0.05%。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_8.jpg" alt="v2_8"></p>
+<p>引用：</p>
+<ol>
+<li><p><a target="_blank" rel="noopener" href="https://www.rareskills.io/uniswap-v2-book">Uniswap V2 Book | RareSkills</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://uniswap.org/whitepaper.pdf">whitepaper.pdf (uniswap.org)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/Jeiwan/uniswapv2-contracts/tree/main">Jeiwan&#x2F;uniswapv2-contracts: Uniswap V2 contracts, ready to be deployed to local or test network (github.com)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://space.bilibili.com/220951871/?spm_id_from=333.999.0.0">梁培利的个人空间-梁培利个人主页-哔哩哔哩视频 (bilibili.com)</a></p>
 </li>
 </ol>
-<h3 id="Maker的盈利分配"><a href="#Maker的盈利分配" class="headerlink" title="Maker的盈利分配"></a>Maker的盈利分配</h3><p>Maker会将其盈利分配到</p>
-<ul>
-<li>DSR，Maker协议的存款合约会将部分盈利支付存款利息</li>
-<li>Keeper，参与清算的Keeper会获得部分激励，比如：参与清算启动拍卖（keeper调用dog .bark）的keeper会获得一笔tip + 拍卖抵押品部分DAI</li>
-<li>MKR holder ：协议盈利也会分配给MKR持有者，协议会将超出协议缓冲金部分的DAI用于回购MKR并将其销毁</li>
-</ul>
-<p><strong>参考资料</strong></p>
-<p><a target="_blank" rel="noopener" href="https://makerdao.com/zh-CN/whitepaper">Maker白皮书</a></p>
-<p><a target="_blank" rel="noopener" href="https://space.bilibili.com/220951871?spm_id_from=333.999.0.0">梁培利的个人空间-梁培利个人主页-哔哩哔哩视频 (bilibili.com)</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.bitget.fit/zh-CN/news/detail/12560603813192">https://www.bitget.fit/zh-CN/news/detail/12560603813192</a></p>
-<p><a target="_blank" rel="noopener" href="https://daistats.com/#/auctions">Dai Stats</a></p>
 
 <div class="article-footer fs14">
     <section id="license">
@@ -212,7 +202,7 @@
     </section>
     </div>
 </article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Uniswap-v1介绍和源码分析</a></div><div class="item" id="next"></div></section></div>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/">合约安全(一)-数据存储</a></div></section></div>
 
 
 
@@ -226,7 +216,7 @@
 
 
 
-<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#DAI"><span class="toc-text">DAI</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5"><span class="toc-text">相关概念</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Maker%E5%8D%8F%E8%AE%AE"><span class="toc-text">Maker协议</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Vault%E2%80%94%E2%80%94Maker%E6%8A%B5%E6%8A%BC%E4%BB%93%E5%BA%93"><span class="toc-text">Vault——Maker抵押仓库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Maker%E6%B8%85%E7%AE%97%E6%9C%BA%E5%88%B6"><span class="toc-text">Maker清算机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Collateral-Auction"><span class="toc-text">Collateral Auction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Debt-Auction"><span class="toc-text">Debt Auction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Surplus-Auction"><span class="toc-text">Surplus Auction</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MakerDAO"><span class="toc-text">MakerDAO</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Maker%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%A4%96%E9%83%A8%E5%8F%82%E4%B8%8E%E8%80%85"><span class="toc-text">Maker协议的外部参与者</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Keeper%E2%80%94%E2%80%94%E7%9C%8B%E6%8A%A4%E8%80%85"><span class="toc-text">Keeper——看护者</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle%E2%80%94%E2%80%94%E9%A2%84%E8%A8%80%E6%9C%BA"><span class="toc-text">Oracle——预言机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Global-Settler%E2%80%94%E2%80%94%E5%85%A8%E5%B1%80%E6%B8%85%E7%AE%97%E8%80%85"><span class="toc-text">Global Settler——全局清算者</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MKR%E6%B2%BB%E7%90%86%E4%BB%A3%E5%B8%81"><span class="toc-text">MKR治理代币</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MakerDAO%E7%9A%84%E7%9B%88%E5%88%A9%E6%9D%A5%E6%BA%90%E5%92%8C%E5%85%B6%E5%88%86%E9%85%8D"><span class="toc-text">MakerDAO的盈利来源和其分配</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Maker%E7%9A%84%E7%9B%88%E5%88%A9%E6%94%B6%E5%85%A5"><span class="toc-text">Maker的盈利收入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Maker%E7%9A%84%E7%9B%88%E5%88%A9%E5%88%86%E9%85%8D"><span class="toc-text">Maker的盈利分配</span></a></li></ol></li></ol></li></ol></div><div class="widget-footer">
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Uniswap-v2"><span class="toc-text">Uniswap-v2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B0%E5%A2%9E%E5%8A%9F%E8%83%BD"><span class="toc-text">新增功能</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E4%BB%BB%E6%84%8F%E7%9A%84ERC20-pair"><span class="toc-text">支持任意的ERC20 pair</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7-Flash-Swap"><span class="toc-text">闪电贷(Flash Swap)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AA%E7%94%B5%E8%B4%B7%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8"><span class="toc-text">闪电贷有什么应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ERC3156-%E9%97%AA%E7%94%B5%E8%B4%B7%E5%AE%9E%E7%8E%B0%E6%A0%87%E5%87%86"><span class="toc-text">ERC3156-闪电贷实现标准</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E5%8A%A0%E6%9D%83%E5%B9%B3%E5%9D%87%E5%BC%BA%E5%8C%96%E7%9A%84%E4%BB%B7%E6%A0%BC%E9%A2%84%E8%A8%80%E6%9C%BA"><span class="toc-text">时间加权平均强化的价格预言机</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#TWAP"><span class="toc-text">TWAP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TWAP%E9%9C%80%E8%A6%81%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">TWAP需要解决的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%9F%E8%B8%AA%E4%B8%A4%E4%B8%AA%E8%B5%84%E4%BA%A7TWAP"><span class="toc-text">跟踪两个资产TWAP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8A%E6%97%B6%E6%9B%B4%E6%96%B0%E4%BB%B7%E6%A0%BC"><span class="toc-text">及时更新价格</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%8F%E8%AE%AE%E8%B4%B9%E7%94%A8-Protocol-fee"><span class="toc-text">协议费用(Protocol fee)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#LPT%E5%A2%9E%E5%80%BC"><span class="toc-text">LPT增值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A2%9E%E5%8F%91LPT%E6%8B%BF%E8%B5%B0LPT%E5%A2%9E%E5%80%BC%E7%9A%84%E5%88%A9%E6%B6%A6"><span class="toc-text">增发LPT拿走LPT增值的利润</span></a></li></ol></li></ol></div><div class="widget-footer">
 
 <a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a><a class="buttom" onclick="util.scrollComment()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.46 1.25h3.08c1.603 0 2.86 0 3.864.095c1.023.098 1.861.3 2.6.752a5.75 5.75 0 0 1 1.899 1.899c.452.738.654 1.577.752 2.6c.095 1.004.095 2.261.095 3.865v1.067c0 1.141 0 2.036-.05 2.759c-.05.735-.153 1.347-.388 1.913a5.75 5.75 0 0 1-3.112 3.112c-.805.334-1.721.408-2.977.43a10.81 10.81 0 0 0-.929.036c-.198.022-.275.054-.32.08c-.047.028-.112.078-.224.232c-.121.166-.258.396-.476.764l-.542.916c-.773 1.307-2.69 1.307-3.464 0l-.542-.916a10.605 10.605 0 0 0-.476-.764c-.112-.154-.177-.204-.224-.232c-.045-.026-.122-.058-.32-.08c-.212-.023-.49-.03-.93-.037c-1.255-.021-2.171-.095-2.976-.429A5.75 5.75 0 0 1 1.688 16.2c-.235-.566-.338-1.178-.389-1.913c-.049-.723-.049-1.618-.049-2.76v-1.066c0-1.604 0-2.86.095-3.865c.098-1.023.3-1.862.752-2.6a5.75 5.75 0 0 1 1.899-1.899c.738-.452 1.577-.654 2.6-.752C7.6 1.25 8.857 1.25 10.461 1.25M6.739 2.839c-.914.087-1.495.253-1.959.537A4.25 4.25 0 0 0 3.376 4.78c-.284.464-.45 1.045-.537 1.96c-.088.924-.089 2.11-.089 3.761v1c0 1.175 0 2.019.046 2.685c.045.659.131 1.089.278 1.441a4.25 4.25 0 0 0 2.3 2.3c.515.214 1.173.294 2.429.316h.031c.398.007.747.013 1.037.045c.311.035.616.104.909.274c.29.17.5.395.682.645c.169.232.342.525.538.856l.559.944a.52.52 0 0 0 .882 0l.559-.944c.196-.331.37-.624.538-.856c.182-.25.392-.476.682-.645c.293-.17.598-.24.909-.274c.29-.032.639-.038 1.037-.045h.032c1.255-.022 1.913-.102 2.428-.316a4.25 4.25 0 0 0 2.3-2.3c.147-.352.233-.782.278-1.441c.046-.666.046-1.51.046-2.685v-1c0-1.651 0-2.837-.089-3.762c-.087-.914-.253-1.495-.537-1.959a4.25 4.25 0 0 0-1.403-1.403c-.464-.284-1.045-.45-1.96-.537c-.924-.088-2.11-.089-3.761-.089h-3c-1.651 0-2.837 0-3.762.089" clip-rule="evenodd"/><path fill="currentColor" d="M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0"/></svg><span>参与讨论</span></a></div></widget>
 </div></aside><div class='float-panel blur'>
