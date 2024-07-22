@@ -1,0 +1,633 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1" theme-name="Stellar" theme-version="1.28.1">
+  
+  <meta name="generator" content="Hexo 7.2.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  
+  <title>计算机网络应用层协议-HTTP - Salbt's blog</title>
+
+  
+    <meta name="description" content="本文使用计算机网络(第七版)作为复习的资料，介绍HTTP相关概念同时用golang实现书中一些案例，既能复习计网知识还能学习go网络编程，一举两得^_^。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络应用层协议-HTTP">
+<meta property="og:url" content="http://salbt.github.io/2024/07/15/HTTP%E5%8D%8F%E8%AE%AE/index.html">
+<meta property="og:site_name" content="Salbt&#39;s blog">
+<meta property="og:description" content="本文使用计算机网络(第七版)作为复习的资料，介绍HTTP相关概念同时用golang实现书中一些案例，既能复习计网知识还能学习go网络编程，一举两得^_^。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://salbt.github.io/%5Cimages%5Cposts%5Cnetwork%5CHttp_1.jpg">
+<meta property="og:image" content="http://salbt.github.io/images%5Cposts%5Cnetwork%5Cconnect.png">
+<meta property="og:image" content="http://salbt.github.io/images%5Cposts%5Cnetwork%5Creq.jpg">
+<meta property="og:image" content="http://salbt.github.io/images%5Cposts%5Cnetwork%5Cresp.jpg">
+<meta property="og:image" content="http://salbt.github.io/images%5Cposts%5Cnetwork%5Ccookie.jpg">
+<meta property="og:image" content="http://salbt.github.io/images%5Cposts%5Cnetwork%5C%E4%BB%A3%E7%90%86.jpg">
+<meta property="og:image" content="http://salbt.github.io/images%5Cposts%5Cnetwork%5C%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.jpg">
+<meta property="article:published_time" content="2024-07-15T10:22:12.000Z">
+<meta property="article:modified_time" content="2024-07-22T11:19:51.397Z">
+<meta property="article:author" content="Salbt">
+<meta property="article:tag" content="计算机网络">
+<meta property="article:tag" content="HTTP">
+<meta property="article:tag" content="golang">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://salbt.github.io/%5Cimages%5Cposts%5Cnetwork%5CHttp_1.jpg">
+  
+  
+  
+  <meta name="keywords" content="计算机网络,HTTP,golang">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.28.1">
+
+  
+    <link rel="shortcut icon" href="/images/header.jpg">
+  
+
+  
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/header.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Salbt's blog</div><div class="sub cap">记录学习的点滴</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="文档" href="/wiki/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/about/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/07/15/HTTP%E5%8D%8F%E8%AE%AE/"><span class="title">计算机网络应用层协议-HTTP</span></a><a class="item title" href="/2024/07/17/Uniswap-v2(%E4%B8%80)%E5%8A%9F%E8%83%BD%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(一)-功能和原理分析</span></a><a class="item title" href="/2024/07/11/%E6%B7%B1%E5%85%A5EVM(%E4%B8%80)/"><span class="title">深入EVM(一)-EVM架构</span></a><a class="item title" href="/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/"><span class="title">合约安全(一)-数据存储</span></a><a class="item title" href="/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v1介绍和源码分析</span></a><a class="item title" href="/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/"><span class="title">深入EVM(二)-EVM指令集</span></a><a class="item title" href="/2024/05/12/Maker-Introduce/"><span class="title">Maker协议介绍</span></a><a class="item title" href="/2024/05/28/%E5%B8%81%E5%AE%89%E9%92%B1%E5%8C%85%E8%BF%90%E4%BD%9C%E5%8E%9F%E7%90%86/"><span class="title">币安钱包运作原理</span></a><a class="item title" href="/2024/05/27/HD%E9%92%B1%E5%8C%85/"><span class="title">HD钱包原理-BIP32、BIP39、BIP44</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E7%BD%91%E7%BB%9C/">网络</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-07-15T10:22:12.000Z">2024-07-15</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-07-22T11:19:51.397Z">2024-07-22</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>计算机网络应用层协议-HTTP</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h1 id="HTTP"><a href="#HTTP" class="headerlink" title="HTTP"></a>HTTP</h1><p>HTTP（HyperText Transfer Protocol，HTTP）是实现Web的应用层协议，HTPP由两个程序实现：一个客户端程序和服务器程序。这两个程序运行在两个设备上，使用HTTP报文进行会话。在深入HTTP之前，先解释一些Web的术语。</p>
+<h2 id="Web相关概念"><a href="#Web相关概念" class="headerlink" title="Web相关概念"></a>Web相关概念</h2><ul>
+<li><p><strong>Web页面（Web page）</strong>：Web页面是由对象组成的。一个对象（object）是一个文件，这个文件可以是HTML、JPRG图形、一个JAVA程序或一段视频这样的文件。</p>
+<blockquote>
+<p>多数Web页面会包含一个HTML基本文件以及引用的几个对象</p>
+</blockquote>
+</li>
+<li><p><strong>Web浏览器（Web browser）</strong>：Web浏览器是实现了HTTP协议的客户端（client）。</p>
+</li>
+<li><p><strong>Web服务器（Web server）</strong>：Web服务器是实现了HTTP协议的服务器，能够存储Web对象，每个对象由URL寻址获得。</p>
+</li>
+</ul>
+<h2 id="HTTP概况"><a href="#HTTP概况" class="headerlink" title="HTTP概况"></a>HTTP概况</h2><p>HTTP定义了Web浏览器向Web服务器请求Web页面的方式、服务器向Web浏览器发送页面的方式。基本的思路如下图：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/%5Cimages%5Cposts%5Cnetwork%5CHttp_1.jpg" alt="Http_1"></p>
+<p>HTTP使用TCP作为运输层协议，在服务器和客户端建立起TCP连接后，浏览器和客户端进程就能通过套接字（socket）访问TCP。</p>
+<p>Web服务器能够从套接字获得从Web客户端发送的HTTP请求报文，同样Web客户端能从套接字获得从Web服务器发送的HTTP响应报文。当HTTP报文通过套接字进入TCP，报文就会脱离程序的控制并进入TCP的控制。这就是划分网络协议层的原因，我们无需关注TCP的工作，只需要关注应用层（HTTP）怎样处理报文。</p>
+<h3 id="无状态协议"><a href="#无状态协议" class="headerlink" title="无状态协议"></a>无状态协议</h3><p>HTTP是一个无状态协议，因为HTTP服务器不会保存用户的任何信息。但这不代表Web服务器不会保存任何信息，HTTP提供了cookie以支持Web服务器跟踪用户内容。</p>
+<h3 id="用go创建一个Web服务器和客户端"><a href="#用go创建一个Web服务器和客户端" class="headerlink" title="用go创建一个Web服务器和客户端"></a>用go创建一个Web服务器和客户端</h3><p>在浏览器或者使用curl命令访问本地 <a target="_blank" rel="noopener" href="http://127.0.0.1:8080/">http://127.0.0.1:8080</a> ，会返回一个”welcome to this Web Page”</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	http.HandleFunc(<span class="string">&quot;/&quot;</span>, myHandle)</span><br><span class="line">	http.ListenAndServe(<span class="string">&quot;127.0.0.1:8080&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">myHandle</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">	<span class="comment">// 回复</span></span><br><span class="line">	w.Write([]<span class="type">byte</span>(<span class="string">&quot;welcome to this Web Page&quot;</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>或者编写一个客户端发送HTTP请求</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;io&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	resp, _ := http.Get(<span class="string">&quot;http://127.0.0.1:8080&quot;</span>)</span><br><span class="line">	<span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line"></span><br><span class="line">	buf := <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="number">1024</span>)</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="comment">// 接收服务端信息</span></span><br><span class="line">		n, err := resp.Body.Read(buf)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &amp;&amp; err != io.EOF &#123;</span><br><span class="line">			fmt.Println(err)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			fmt.Println(<span class="string">&quot;读取完毕&quot;</span>)</span><br><span class="line">			res := <span class="type">string</span>(buf[:n])</span><br><span class="line">			fmt.Println(res)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码来源：<a target="_blank" rel="noopener" href="https://www.topgoer.com/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/http%E7%BC%96%E7%A8%8B.html">http编程 · Go语言中文文档 (topgoer.com)</a></p>
+<h2 id="非持续连接和持续连接"><a href="#非持续连接和持续连接" class="headerlink" title="非持续连接和持续连接"></a>非持续连接和持续连接</h2><p>在客户端和服务器进行通信前，必须先建立起连接，然后客户端就能够发送一系列请求。客户端-服务器的连接是通过TCP建立起的，应用程序的设计者就需要考虑一个问题，<strong>即每个请求&#x2F;响应对是经过一个TCP连接发送，还是所有请求&#x2F;响应对都经过一个TCP连接发送</strong>。</p>
+<p>这两种方式分别称为：</p>
+<ul>
+<li>非持续连接：每次发送一个HTTP请求都需要建立一个TCP连接，在客户端收到HTTP响应后关闭TCP连接。</li>
+<li>持续连接：发送一系列HTTP请求可以在一个TCP连接得到响应，服务器会在一段时间后关闭TCP连接。</li>
+</ul>
+<p>下图中展示了三种HTTP连接的方式，也是HTTP模型发展的三个阶段：HTTP&#x2F;1.0、HTTP&#x2F;1.1、HTTP&#x2F;2.0。前两者是我们介绍的非持续连接和持续连接的方式实现的，第三个采用了<strong>流水线的持续连接</strong>设计思路允许在同一TCP连接中并发的处理HTTP请求和回复HTTP响应。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images%5Cposts%5Cnetwork%5Cconnect.png" alt="connect"></p>
+<center><font size=2>Source: https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Connection_management_in_HTTP_1.x</font></center>
+
+<p>可以看出这三种方式的优劣：</p>
+<p>HTTP&#x2F;1.0会频繁建立TCP连接，这会给服务器带来严重的负担。HTTP&#x2F;1.1改善了这个问题，它使TCP连接保持打开，等待一个时间间隔（没有被使用）后关闭连接。HTTP&#x2F;2.0能够比前两者减少更多的延迟，但不是所用请求都适合使用这种方式，这里不作过多介绍。</p>
+<h1 id="HTTP报文格式"><a href="#HTTP报文格式" class="headerlink" title="HTTP报文格式"></a>HTTP报文格式</h1><p>HTTP报文有两种：请求报文和响应报文、</p>
+<h2 id="HTTP请求报文"><a href="#HTTP请求报文" class="headerlink" title="HTTP请求报文"></a>HTTP请求报文</h2><p>HTTP请求报文主要由三部分组成：</p>
+<ul>
+<li>请求行（request line）：包含三个字段<ul>
+<li>方法字段：HTTP常见的方法包括GET、POST、HEAD、PUT和DELETE</li>
+<li>URL：客户端请求的对象</li>
+<li>HTTP版本：一般客户端默认版本使HTTP&#x2F;1.1</li>
+</ul>
+</li>
+<li>首部行（header line）：首部行是向服务器或客户端提供一些必要的信息，比如：Host指明对象所在的主机，Connect指明发送完该对象后是否关闭（Keep-Alive&#x2F;close），User-agent指明用户代理（向用户发送请求的浏览器类型）。</li>
+<li>实体体（entity body）：实体体可以看作报文运输的货物。一般使用Post方法的报文会携带数据，这个数据可能来自网页的输入。</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images%5Cposts%5Cnetwork%5Creq.jpg" alt="req"></p>
+<p>下面展示一个HTTP请求报文，第一行是请求行，其中使用方法是GET，请求对象 &#x2F;，之后三行是首部行。GET方法一般没有实体体。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">GET / HTTP/1.1 </span><br><span class="line">Host: localhost:8080</span><br><span class="line">User-Agent: Mozilla/5.0</span><br><span class="line">Connection: keep-alive</span><br></pre></td></tr></table></figure>
+
+<p>可以在浏览器使用F12打开开发者工具查看网络中的HTTP请求，Edge、Google等主流浏览器都支持。</p>
+<h2 id="HTTP响应报文"><a href="#HTTP响应报文" class="headerlink" title="HTTP响应报文"></a>HTTP响应报文</h2><p>HTTP响应报文与HTTP请求相似，但第一行与它不同，我们分析HTTP响应报文的状态行：</p>
+<p>状态行分为三部分：</p>
+<ul>
+<li>版本：服务器使用HTTP版本，一般是HTTP&#x2F;1.1</li>
+<li>状态码和短语：状态码是表明特定HTTP是否完成成功，短语与状态码相对应。常见响应如下<ul>
+<li>200 OK：请求成功，信息返回响应报文中</li>
+<li>301 Move Permanently：请求的对象被永久转移，新的URL定义在响应报文首部行的 Localtion。客户软件会自动获取新的URL</li>
+<li>400 Bad Requset：一个通用差错代码，指示该请求不能被服务器理解</li>
+</ul>
+</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images%5Cposts%5Cnetwork%5Cresp.jpg" alt="resp"></p>
+<p>下面展示一个HTTP响应报文，响应报文也能在浏览器中查看。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Content-Length:24</span><br><span class="line">Content-Type:text/plain; charset=utf-8</span><br><span class="line">Connection: keep-alive</span><br><span class="line">Date:Fri, 19 Jul 2024 10:15:02 GMT</span><br></pre></td></tr></table></figure>
+
+<h1 id="Cookie-解决HTTP无状态的设计"><a href="#Cookie-解决HTTP无状态的设计" class="headerlink" title="Cookie-解决HTTP无状态的设计"></a>Cookie-解决HTTP无状态的设计</h1><p>前面我们提到HTTP本身是一个无状态的协议，这能够简化服务器的设计，并且允许工程师去开发同时能处理上千个。</p>
+<p>假如一个网站希望能够识别用户，可能是服务器用于限制用户的访问，或者是因为它想将内容与用户联系起来。这个时候，我们就能够使用cookie对用户进行跟踪，目前大多数Web站点都是用了cookie技术。</p>
+<p>cookie实现需要实现四个组件</p>
+<ul>
+<li>HTTP请求报文的首部行有cookie</li>
+<li>HTTP响应报文的首部行有cookie</li>
+<li>用户端系统中有一个cookie文件，一般由用户的浏览器进行管理</li>
+<li>Web站点有一个后端数据库</li>
+</ul>
+<h2 id="cookie工作过程"><a href="#cookie工作过程" class="headerlink" title="cookie工作过程"></a>cookie工作过程</h2><ol>
+<li>PC端访问浏览器的Web对象，请求报文到达Web服务器后，服务器会创建一个识别码，以此作为索引在它的后端数据库中产生的表项。</li>
+<li>Web服务器会在HTTP响应报文的首部行添加<code>Set-cookie：识别码</code> ，PC端接收后会根据Set-cookie在其特定的cookie文件中添加一行。</li>
+<li>PC之后向该服务器继续访问Web对象时会在HTTP请求报文首部行添加cookie字段，服务器可以根据请求报文中cookie跟踪用户动作或完成一些动作。</li>
+<li>PC端在一周后继续访问，加入服务器的cookie没有过期，服务器能够继续使用该cookie跟踪用户。</li>
+</ol>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images%5Cposts%5Cnetwork%5Ccookie.jpg" alt="cookie"></p>
+<h2 id="go代码模拟"><a href="#go代码模拟" class="headerlink" title="go代码模拟"></a>go代码模拟</h2><p>我们使用go实现上述流程，我们假设一个场景：</p>
+<ul>
+<li>用户Alice是这个网站注册用户，首先Alice通过index网站登录，此时服务器发送HTTP响应报文时会携带一个Set-cookie发送给她的PC浏览器。</li>
+<li>然后Alice要在这个网站下获得一些需要的信息，Alice向该网站的另一个资源发出请求，发送的HTTP请求报文携带有cookie。</li>
+<li>网站服务器通过cookie确定Alice的身份，然后根据Alice在数据库中的信息推荐给她需要的信息。</li>
+</ul>
+<p><strong>服务器代码</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模拟后端数据库</span></span><br><span class="line"><span class="keyword">var</span> db <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	RUnDB()</span><br><span class="line"></span><br><span class="line">	http.HandleFunc(<span class="string">&quot;/&quot;</span>, HandleIndex)</span><br><span class="line">	http.HandleFunc(<span class="string">&quot;/HandleCookie&quot;</span>, HandleCookie)</span><br><span class="line">	http.ListenAndServe(<span class="string">&quot;127.0.0.1:8080&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RUnDB</span><span class="params">()</span></span> &#123;</span><br><span class="line">	db = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>)</span><br><span class="line">	<span class="comment">// 假设alice已经注册过了</span></span><br><span class="line">	db[<span class="string">&quot;username&quot;</span>] = <span class="string">&quot;Alice&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HandleIndex</span><span class="params">(writer http.ResponseWriter, request *http.Request)</span></span> &#123;</span><br><span class="line">	<span class="comment">// 为客户端设置一个cookie id</span></span><br><span class="line">	cookie := http.Cookie&#123;</span><br><span class="line">		Name:  <span class="string">&quot;username&quot;</span>,</span><br><span class="line">		Value: <span class="string">&quot;Alice&quot;</span>,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 响应报文添加set-cookie</span></span><br><span class="line">	http.SetCookie(writer, &amp;cookie)</span><br><span class="line"></span><br><span class="line">	writer.Write([]<span class="type">byte</span>(<span class="string">&quot;HandleIndex Page: 使用cookie收集了你的信息&quot;</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">HandleCookie</span><span class="params">(writer http.ResponseWriter, request *http.Request)</span></span> &#123;</span><br><span class="line">	<span class="comment">// 接受客户端传来的cookie</span></span><br><span class="line">	cookie := request.Cookies()[<span class="number">0</span>]</span><br><span class="line">	<span class="comment">// 使用cookie完成动作</span></span><br><span class="line">	<span class="keyword">if</span> cookie.Value == db[cookie.Name] &#123;</span><br><span class="line">		writer.Write([]<span class="type">byte</span>(<span class="string">&quot;HandleCookie Page: 根据用户推荐相关信息&quot;</span>))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>客户端</strong></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">	<span class="string">&quot;io&quot;</span></span><br><span class="line">	<span class="string">&quot;net/http&quot;</span></span><br><span class="line">	<span class="string">&quot;strings&quot;</span></span><br><span class="line">	<span class="string">&quot;time&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模拟存放cookie的管理器</span></span><br><span class="line"><span class="keyword">var</span> db <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span> = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	RunDB()</span><br><span class="line"></span><br><span class="line">	Get(<span class="string">&quot;http://127.0.0.1:8080&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="literal">false</span>)</span><br><span class="line">	Get(<span class="string">&quot;http://127.0.0.1:8080&quot;</span>, <span class="string">&quot;/HandleCookie&quot;</span>, <span class="literal">true</span>)</span><br><span class="line">	time.Sleep(<span class="number">7</span> * time.Second)</span><br><span class="line">	fmt.Println(<span class="string">&quot;模拟一个周后&quot;</span>)</span><br><span class="line">	Get(<span class="string">&quot;http://127.0.0.1:8080&quot;</span>, <span class="string">&quot;/HandleCookie&quot;</span>, <span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RunDB</span><span class="params">()</span></span> &#123;</span><br><span class="line">	db = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Get</span><span class="params">(url <span class="type">string</span>, path <span class="type">string</span>, hasCookie <span class="type">bool</span>)</span></span> &#123;</span><br><span class="line">	<span class="comment">// 创建一个http.Client对象</span></span><br><span class="line">	client := &amp;http.Client&#123;&#125;</span><br><span class="line">	<span class="comment">// 创建一个http.Request对象</span></span><br><span class="line">	req, _ := http.NewRequest(<span class="string">&quot;GET&quot;</span>, url+path, <span class="literal">nil</span>)</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 发送cookie</span></span><br><span class="line">	<span class="keyword">if</span> hasCookie &#123;</span><br><span class="line">		<span class="comment">// 从数据库中获取键值</span></span><br><span class="line">		s := strings.Split(db[url], <span class="string">&quot;=&quot;</span>)</span><br><span class="line">		<span class="comment">// 请求中添加cookie</span></span><br><span class="line">		cookie := http.Cookie&#123;</span><br><span class="line">			Name:  s[<span class="number">0</span>],</span><br><span class="line">			Value: s[<span class="number">1</span>],</span><br><span class="line">		&#125;</span><br><span class="line">		req.AddCookie(&amp;cookie)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 3. 发送请求</span></span><br><span class="line">	resp, _ := client.Do(req)</span><br><span class="line">	<span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 请求中有Set-Cookie，则将Set-Cookie保存到数据库中</span></span><br><span class="line">	<span class="keyword">if</span> resp.Header.Get(<span class="string">&quot;Set-Cookie&quot;</span>) != <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">		db[url] = resp.Header.Get(<span class="string">&quot;Set-Cookie&quot;</span>)</span><br><span class="line">		fmt.Println(<span class="string">&quot;Set-Cookie:&quot;</span>, resp.Header.Get(<span class="string">&quot;Set-Cookie&quot;</span>))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	Output(resp)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Output</span><span class="params">(resp *http.Response)</span></span> &#123;</span><br><span class="line">	buf := <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="number">1024</span>)</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="comment">// 接收服务端信息</span></span><br><span class="line">		n, err := resp.Body.Read(buf)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &amp;&amp; err != io.EOF &#123;</span><br><span class="line">			fmt.Println(err)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			res := <span class="type">string</span>(buf[:n])</span><br><span class="line">			fmt.Println(res)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="Web缓存"><a href="#Web缓存" class="headerlink" title="Web缓存"></a>Web缓存</h1><p>web缓存是能够通过暂时存储Web对象，以减少服务延迟的技术。如果客户端频繁访问某几个页面，那么使用Web缓存存储这些Web对象会减少大量时延。</p>
+<p>web缓存分类：</p>
+<ul>
+<li>数据库缓存</li>
+<li>CDN缓存</li>
+<li>浏览器缓存</li>
+<li>代理服务器缓存</li>
+</ul>
+<h2 id="代理服务器"><a href="#代理服务器" class="headerlink" title="代理服务器"></a>代理服务器</h2><p>web缓存器（Web cache）也叫代理服务器（proxy server），它是能够代表初始Web服务器来满足HTTP请求的网络实体。</p>
+<p>Web缓存器的运行如下：</p>
+<ol>
+<li>PC端浏览器会向代理服务器创建TCP连接，并向代理服务器发送一个HTTP请求。</li>
+<li>如果代理服务器有PC浏览器请求的对象，代理服务器就能直接返回该对象。</li>
+<li>如果没有请求的对象，代理服务器就会和初始服务器建立TCP连接，并发送一个HTTP请求。然后初始服务器会发送HTTP响应给Web缓存器。</li>
+<li>当代理服务器中没有该对象时，它会在本地存储一个该对象副本，并向PC浏览器使用HTTP响应报文发送该副本（通过现有的PC浏览器和代理服务器的TCP连接）。</li>
+</ol>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images%5Cposts%5Cnetwork%5C%E4%BB%A3%E7%90%86.jpg" alt="代理"></p>
+<h3 id="反向代理"><a href="#反向代理" class="headerlink" title="反向代理"></a>反向代理</h3><p>代理服务器除了作为Web缓存器外它还具有其他功能，比如拦截和过滤HTTP请求和响应、隐藏网络内部IP等。上面使用的代理服务器是作为正向代理。</p>
+<p>正向代理是指代理服务器在客户端和服务器之间。客户端发送请求到代理服务器，代理服务器将请求转发给目标服务器，并将目标服务器的响应转发回客户端（代理服务器常与客户端在同一局域网下）。</p>
+<p><strong>正向代理常用于加强安全、缓存内容以加速访问、访问受限资源等场景。</strong></p>
+<p>代理服务器还能用于反向代理，反向代理是指代理服务器在服务器和客户端之间。客户端发送请求到反向代理服务器，反向代理服务器将请求转发给真实服务器，并将真实服务器的响应转发回客户端（反向代理服务器常与服务器在同一局域网下）。</p>
+<p><strong>反向代理常用于负载均衡、高可用性、加强安全等场景。</strong></p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images%5Cposts%5Cnetwork%5C%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86.jpg" alt="反向代理"></p>
+<h2 id="条件GET"><a href="#条件GET" class="headerlink" title="条件GET"></a>条件GET</h2><p>缓存能够很好减少用户感受到的响应时间，但是也引入了一个新问题：如果缓存中引入的副本已经过时了，或者说服务器上文件已经更新了但缓存的副本还没更新。</p>
+<p>对此，HTTP使用了条件GET解决这种问题，它的解决方式如下：</p>
+<ol>
+<li>允许代理服务器向服务器发送使用GET方法的请求报文</li>
+<li>这个报文的请求头包含一个<code>if-Modified-Since</code></li>
+</ol>
+<p>当代理服务器从客户端接受到一个请求对象，这个对象正好存储在代理服务器中。此时代理服务器发现缓存一段时间没有更新，它会向服务器发送一个条件GET请求。如果服务器没有修改过该对象，响应报文是不会包含对象副本。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li>计算机网络（自顶向下方法）第七版</li>
+<li><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1418457">终于有人把正向代理和反向代理解释的明明白白了！-腾讯云开发者社区-腾讯云 (tencent.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/7145459348435632141?searchId=20240722003735C2E66A27606A223F5AA7">WEB缓存 - 掘金 (juejin.cn)</a></li>
+</ol>
+
+<div class="article-footer fs14">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/07/17/Uniswap-v2(%E4%B8%80)%E5%8A%9F%E8%83%BD%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/">Uniswap-v2(一)-功能和原理分析</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/">合约安全(一)-数据存储</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Salbt</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1">Stellar 1.28.1</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#HTTP"><span class="toc-text">HTTP</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Web%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5"><span class="toc-text">Web相关概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP%E6%A6%82%E5%86%B5"><span class="toc-text">HTTP概况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A0%E7%8A%B6%E6%80%81%E5%8D%8F%E8%AE%AE"><span class="toc-text">无状态协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8go%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAWeb%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-text">用go创建一个Web服务器和客户端</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%9E%E6%8C%81%E7%BB%AD%E8%BF%9E%E6%8E%A5%E5%92%8C%E6%8C%81%E7%BB%AD%E8%BF%9E%E6%8E%A5"><span class="toc-text">非持续连接和持续连接</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HTTP%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F"><span class="toc-text">HTTP报文格式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP%E8%AF%B7%E6%B1%82%E6%8A%A5%E6%96%87"><span class="toc-text">HTTP请求报文</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP%E5%93%8D%E5%BA%94%E6%8A%A5%E6%96%87"><span class="toc-text">HTTP响应报文</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Cookie-%E8%A7%A3%E5%86%B3HTTP%E6%97%A0%E7%8A%B6%E6%80%81%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="toc-text">Cookie-解决HTTP无状态的设计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#cookie%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="toc-text">cookie工作过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#go%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%8B%9F"><span class="toc-text">go代码模拟</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web%E7%BC%93%E5%AD%98"><span class="toc-text">Web缓存</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">代理服务器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="toc-text">反向代理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6GET"><span class="toc-text">条件GET</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a><a class="buttom" onclick="util.scrollComment()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.46 1.25h3.08c1.603 0 2.86 0 3.864.095c1.023.098 1.861.3 2.6.752a5.75 5.75 0 0 1 1.899 1.899c.452.738.654 1.577.752 2.6c.095 1.004.095 2.261.095 3.865v1.067c0 1.141 0 2.036-.05 2.759c-.05.735-.153 1.347-.388 1.913a5.75 5.75 0 0 1-3.112 3.112c-.805.334-1.721.408-2.977.43a10.81 10.81 0 0 0-.929.036c-.198.022-.275.054-.32.08c-.047.028-.112.078-.224.232c-.121.166-.258.396-.476.764l-.542.916c-.773 1.307-2.69 1.307-3.464 0l-.542-.916a10.605 10.605 0 0 0-.476-.764c-.112-.154-.177-.204-.224-.232c-.045-.026-.122-.058-.32-.08c-.212-.023-.49-.03-.93-.037c-1.255-.021-2.171-.095-2.976-.429A5.75 5.75 0 0 1 1.688 16.2c-.235-.566-.338-1.178-.389-1.913c-.049-.723-.049-1.618-.049-2.76v-1.066c0-1.604 0-2.86.095-3.865c.098-1.023.3-1.862.752-2.6a5.75 5.75 0 0 1 1.899-1.899c.738-.452 1.577-.654 2.6-.752C7.6 1.25 8.857 1.25 10.461 1.25M6.739 2.839c-.914.087-1.495.253-1.959.537A4.25 4.25 0 0 0 3.376 4.78c-.284.464-.45 1.045-.537 1.96c-.088.924-.089 2.11-.089 3.761v1c0 1.175 0 2.019.046 2.685c.045.659.131 1.089.278 1.441a4.25 4.25 0 0 0 2.3 2.3c.515.214 1.173.294 2.429.316h.031c.398.007.747.013 1.037.045c.311.035.616.104.909.274c.29.17.5.395.682.645c.169.232.342.525.538.856l.559.944a.52.52 0 0 0 .882 0l.559-.944c.196-.331.37-.624.538-.856c.182-.25.392-.476.682-.645c.293-.17.598-.24.909-.274c.29-.032.639-.038 1.037-.045h.032c1.255-.022 1.913-.102 2.428-.316a4.25 4.25 0 0 0 2.3-2.3c.147-.352.233-.782.278-1.441c.046-.666.046-1.51.046-2.685v-1c0-1.651 0-2.837-.089-3.762c-.087-.914-.253-1.495-.537-1.959a4.25 4.25 0 0 0-1.403-1.403c-.464-.284-1.045-.45-1.96-.537c-.924-.088-2.11-.089-3.761-.089h-3c-1.651 0-2.837 0-3.762.089" clip-rule="evenodd"/><path fill="currentColor" d="M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0"/></svg><span>参与讨论</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"codeblock":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.28.1" async></script>
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":null},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"></script><script defer src="https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css`,
+    js: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>
