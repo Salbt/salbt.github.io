@@ -1,0 +1,659 @@
+
+<!DOCTYPE html><html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="hexo-theme" content="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1" theme-name="Stellar" theme-version="1.28.1">
+  
+  <meta name="generator" content="Hexo 7.2.0">
+  <meta http-equiv='x-dns-prefetch-control' content='on' />
+  
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+  <meta name="HandheldFriendly" content="True" >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+  
+  <title>Uniswap-v2(二)-源码分析 - Salbt's blog</title>
+
+  
+    <meta name="description" content="在掌握Uniswap-v2原理后，我们逐步分析代码是如何实现这些原理。本文将从uniswap-v2的代码结构开始介绍，然后分析core和periphery代码各部分负责的业务。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Uniswap-v2(二)-源码分析">
+<meta property="og:url" content="http://salbt.github.io/2024/07/22/Uniswap-v2-%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Salbt&#39;s blog">
+<meta property="og:description" content="在掌握Uniswap-v2原理后，我们逐步分析代码是如何实现这些原理。本文将从uniswap-v2的代码结构开始介绍，然后分析core和periphery代码各部分负责的业务。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_9.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_10.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_11.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_12.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_13.jpg">
+<meta property="article:published_time" content="2024-07-22T11:29:08.000Z">
+<meta property="article:modified_time" content="2024-07-24T06:33:43.240Z">
+<meta property="article:author" content="Salbt">
+<meta property="article:tag" content="以太坊">
+<meta property="article:tag" content="uniswap">
+<meta property="article:tag" content="DeFi">
+<meta property="article:tag" content="源码分析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://salbt.github.io/images/posts/uniswapv2/v2_9.jpg">
+  
+  
+  
+  <meta name="keywords" content="以太坊,uniswap,DeFi,源码分析">
+
+  <!-- feed -->
+  
+
+  <link rel="stylesheet" href="/css/main.css?v=1.28.1">
+
+  
+    <link rel="shortcut icon" href="/images/header.jpg">
+  
+
+  
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="l_body s:aa content tech" id="start" layout="post" ><aside class="l_left"><div class="leftbar-container">
+
+
+<header class="header"><div class="logo-wrap"><a class="avatar" href="/about/"><div class="bg" style="opacity:0;background-image:url(https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/rainbow64@3x.webp);"></div><img no-lazy class="avatar" src="/images/header.jpg" onerror="javascript:this.classList.add('error');this.src='https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/image/2659360.svg';"></a><a class="title" href="/"><div class="main" ff="title">Salbt's blog</div><div class="sub cap">记录学习的点滴</div></a></div></header>
+
+<div class="nav-area">
+<div class="search-wrapper" id="search-wrapper"><form class="search-form"><a class="search-button" onclick="document.getElementById(&quot;search-input&quot;).focus();"><svg t="1705074644177" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1560" width="200" height="200"><path d="M1008.839137 935.96571L792.364903 719.491476a56.783488 56.783488 0 0 0-80.152866 0 358.53545 358.53545 0 1 1 100.857314-335.166073 362.840335 362.840335 0 0 1-3.689902 170.145468 51.248635 51.248635 0 1 0 99.217358 26.444296 462.057693 462.057693 0 1 0-158.255785 242.303546l185.930047 185.725053a51.248635 51.248635 0 0 0 72.568068 0 51.248635 51.248635 0 0 0 0-72.978056z" p-id="1561"></path><path d="M616.479587 615.969233a50.428657 50.428657 0 0 0-61.498362-5.534852 174.655348 174.655348 0 0 1-177.525271 3.484907 49.403684 49.403684 0 0 0-58.833433 6.76482l-3.074918 2.869923a49.403684 49.403684 0 0 0 8.609771 78.10292 277.767601 277.767601 0 0 0 286.992355-5.739847 49.403684 49.403684 0 0 0 8.404776-76.667958z" p-id="1562"></path></svg></a><input type="text" class="search-input" id="search-input" placeholder="站内搜索"></form><div id="search-result"></div><div class="search-no-result">没有找到内容！</div></div>
+
+
+<nav class="menu dis-select"><a class="nav-item active" title="博客" href="/" style="color:#1BCDFC"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828 0 4.243.879 5.121C6.757 22 8.172 22 11 22h2c2.828 0 4.243 0 5.121-.879C19 20.243 19 18.828 19 16V8c0-2.828 0-4.243-.879-5.121C17.243 2 15.828 2 13 2h-2c-2.828 0-4.243 0-5.121.879M8.25 17a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75M9 12.25a.75.75 0 0 0 0 1.5h6a.75.75 0 0 0 0-1.5zM8.25 9A.75.75 0 0 1 9 8.25h6a.75.75 0 0 1 0 1.5H9A.75.75 0 0 1 8.25 9" clip-rule="evenodd"/><path fill="currentColor" d="M5.235 4.058C5 4.941 5 6.177 5 8v8c0 1.823 0 3.058.235 3.942L5 19.924c-.975-.096-1.631-.313-2.121-.803C2 18.243 2 16.828 2 14v-4c0-2.829 0-4.243.879-5.121c.49-.49 1.146-.707 2.121-.803zm13.53 15.884C19 19.058 19 17.822 19 16V8c0-1.823 0-3.059-.235-3.942l.235.018c.975.096 1.631.313 2.121.803C22 5.757 22 7.17 22 9.999v4c0 2.83 0 4.243-.879 5.122c-.49.49-1.146.707-2.121.803z" opacity=".5"/></svg></a><a class="nav-item" title="文档" href="/wiki/" style="color:#3DC550"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.25 4.48v3.057c0 .111 0 .27.02.406a.936.936 0 0 0 .445.683a.96.96 0 0 0 .783.072c.13-.04.272-.108.378-.159L17 8.005l1.124.534c.106.05.248.119.378.16a.958.958 0 0 0 .783-.073a.936.936 0 0 0 .444-.683c.021-.136.021-.295.021-.406V3.031c.113-.005.224-.01.332-.013C21.154 2.98 22 3.86 22 4.933v11.21c0 1.112-.906 2.01-2.015 2.08c-.97.06-2.108.179-2.985.41c-1.082.286-1.99 1.068-3.373 1.436c-.626.167-1.324.257-1.627.323V5.174c.32-.079 1.382-.203 1.674-.371c.184-.107.377-.216.576-.323m5.478 8.338a.75.75 0 0 1-.546.91l-4 1a.75.75 0 0 1-.364-1.456l4-1a.75.75 0 0 1 .91.546" clip-rule="evenodd"/><path fill="currentColor" d="M18.25 3.151c-.62.073-1.23.18-1.75.336a8.2 8.2 0 0 0-.75.27v3.182l.75-.356l.008-.005a1.13 1.13 0 0 1 .492-.13c.047 0 .094.004.138.01c.175.029.315.1.354.12l.009.005l.749.356V3.647z"/><path fill="currentColor" d="M12 5.214c-.334-.064-1.057-.161-1.718-.339C8.938 4.515 8.05 3.765 7 3.487c-.887-.234-2.041-.352-3.018-.412C2.886 3.007 2 3.9 2 4.998v11.146c0 1.11.906 2.01 2.015 2.079c.97.06 2.108.179 2.985.41c.486.129 1.216.431 1.873.726c1.005.451 2.052.797 3.127 1.034z" opacity=".5"/><path fill="currentColor" d="M4.273 12.818a.75.75 0 0 1 .91-.545l4 1a.75.75 0 1 1-.365 1.455l-4-1a.75.75 0 0 1-.545-.91m.909-4.545a.75.75 0 1 0-.364 1.455l4 1a.75.75 0 0 0 .364-1.455z"/></svg></a><a class="nav-item" title="探索" href="/about/" style="color:#FA6400"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M20 12a8 8 0 1 1-16 0a8 8 0 0 1 16 0" opacity=".5"/><path fill="currentColor" d="M17.712 5.453c1.047-.193 2.006-.259 2.797-.152c.77.103 1.536.393 1.956 1.064c.446.714.312 1.542-.012 2.258c-.33.728-.918 1.499-1.672 2.268c-1.516 1.547-3.836 3.226-6.597 4.697c-2.763 1.472-5.495 2.484-7.694 2.92c-1.095.217-2.098.299-2.923.201c-.8-.095-1.6-.383-2.032-1.075c-.47-.752-.296-1.63.07-2.379c.375-.768 1.032-1.586 1.872-2.403L4 12.416c0 .219.083.71.168 1.146c.045.23.09.444.123.596c-.652.666-1.098 1.263-1.339 1.756c-.277.567-.208.825-.145.925c.072.116.305.305.937.38c.609.073 1.44.018 2.455-.183c2.02-.4 4.613-1.351 7.28-2.772c2.667-1.42 4.85-3.015 6.23-4.423c.694-.707 1.15-1.334 1.377-1.836c.233-.515.167-.75.107-.844c-.07-.112-.289-.294-.883-.374c-.542-.072-1.272-.041-2.163.112L16.87 5.656c.338-.101.658-.17.842-.203"/></svg></a></nav>
+</div>
+<div class="widgets">
+
+
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/07/22/Uniswap-v2-%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(二)-源码分析</span></a><a class="item title" href="/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v1原理和源码分析</span></a><a class="item title" href="/2024/07/22/MEV-%E6%9C%80%E5%A4%A7%E5%8F%AF%E6%8F%90%E5%8F%96%E4%BB%B7%E5%80%BC%E5%92%8C%E5%AE%9E%E7%8E%B0/"><span class="title">MEV-最大可提取价值和实现</span></a><a class="item title" href="/2024/07/22/AMM%E6%B7%B1%E5%85%A5%E4%B8%8E%E8%A7%A3%E6%9E%90/"><span class="title">AMM深入与解析</span></a><a class="item title" href="/2024/07/17/Uniswap-v2(%E4%B8%80)%E5%8A%9F%E8%83%BD%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(一)-功能和原理分析</span></a><a class="item title" href="/2024/07/22/%E5%A6%82%E4%BD%95%E5%8E%BB%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-Message-Queue/"><span class="title">如何去实现一个消息队列(Message Queue)</span></a><a class="item title" href="/2024/07/15/HTTP%E5%8D%8F%E8%AE%AE/"><span class="title">计算机网络应用层协议-HTTP</span></a><a class="item title" href="/2024/07/11/%E6%B7%B1%E5%85%A5EVM(%E4%B8%80)/"><span class="title">深入EVM(一)-EVM架构</span></a><a class="item title" href="/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/"><span class="title">合约安全(一)-数据存储</span></a><a class="item title" href="/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/"><span class="title">深入EVM(二)-EVM指令集</span></a></div></widget>
+</div>
+
+</div></aside><div class="l_main" id="main">
+
+
+
+
+
+<div class="article banner top">
+  <div class="content">
+    <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/ethereum/">ethereum</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/ethereum/DeFi/">DeFi</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/ethereum/DeFi/Uniswap/">Uniswap</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-07-22T11:29:08.000Z">2024-07-22</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-07-24T06:33:43.240Z">2024-07-24</time></span></div></div></div>
+    
+    <div class="bottom only-title">
+      
+      <div class="text-area">
+        <h1 class="text title"><span>Uniswap-v2(二)-源码分析</span></h1>
+        
+      </div>
+    </div>
+    
+  </div>
+  </div><article class="md-text content"><h1 id="Uniswap-v2架构"><a href="#Uniswap-v2架构" class="headerlink" title="Uniswap-v2架构"></a>Uniswap-v2架构</h1><p>Uniswap v2的代码结构采用了Core-Periphery，这种架构将交易对的数据状态和底层函数这类上链就不能更改的部分归入Uniswap Core，而将非核心功能的代码放入Uniswap Periphery。</p>
+<h2 id="为什么要使用Core-Periphery代码结构"><a href="#为什么要使用Core-Periphery代码结构" class="headerlink" title="为什么要使用Core-Periphery代码结构"></a>为什么要使用Core-Periphery代码结构</h2><p>在研究Uniswap v2源码时，我对它的代码结构产生了很大的疑惑，为什么要使用Core-Periphery代码结构。研究v2代码之前，我也对Maker协议的源码进行过分析，它们的合约代码有一个特点：数据和底层功能部分的合约是与上层功能部分的合约分离开的。</p>
+<p>怎样理解这个特点，我们可以从区块链的特性解释。我们知道一旦合约上链，其代码内容就不可篡改。如果我们将代码的数据与底层部分代码和业务功能部分代码耦合，那么我们在合约上链之后就不能对业务功能进行升级了。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_9.jpg" alt="v2_9"></p>
+<p>在<a target="_blank" rel="noopener" href="https://github.com/Uniswap/v2-periphery">v2-periphery</a>中我们也能够发现Core-Periphery代码结构带来的好处，仓库中有两个UniswapV2Router合约，其中Router02是Router01的改进版。</p>
+<h2 id="Core和Periphery包含的代码"><a href="#Core和Periphery包含的代码" class="headerlink" title="Core和Periphery包含的代码"></a>Core和Periphery包含的代码</h2><p>了解Core-Periphery代码结构后，我们分析下Core和Periphery下主要功能，</p>
+<p><strong>Core</strong></p>
+<p>Core将swap的卖token的过程，即发送token到交易者地址的功能放在UniswapV2Pair，这过程还会检查流通性k的合法性（k<sub>new</sub> &gt;&#x3D; k<sub>pervious</sub>）。此外添加流通性和移除流动性需要使用的mint和burn也在该合约实现。</p>
+<ul>
+<li>UniswapV2ERC20</li>
+<li>UniswapV2Factory</li>
+<li>UniswapV2Pair</li>
+</ul>
+<p><strong>Periphery</strong></p>
+<p>Periphery将swap的买token的过程，即发送token到pair地址的功能放在UniswapV2Router02。添加流通性和移除流动性之前需要transfer的token也会在该部分实现。</p>
+<ul>
+<li>UniswapV2Router01</li>
+<li>UniswapV2Router02</li>
+<li>UniswapV2Migrator</li>
+</ul>
+<h1 id="Uniswap-v2-Core"><a href="#Uniswap-v2-Core" class="headerlink" title="Uniswap-v2 Core"></a>Uniswap-v2 Core</h1><p>Uniswap-v2 core是一个Uniswap核心部分，其UniswapV2ERC20是uniswap项目的LPT，每当用户添加流动性就能够mint一笔LPT，同样用户也可以burn一笔LPT移除流动性。</p>
+<p>流动性管理和交易由UniswapV2Pair负责，swap的计算和流动性相关计算笔者在<a href="https://salbt.github.io/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Uniswap-v1介绍和源码分析 - Salbt’s blog</a>中进行了讲解。UniswapV2Pair实现了TWAP和闪电贷，我们会在下面深入。</p>
+<p>然后v1中还有一个工厂合约，在v2中对工厂进行了升级，v2使用ceate2创建合约能计算出UniswapV2Pair具体地址。在UniswapV2Factory会深入讲解create2这个指令。</p>
+<h2 id="UniswapV2ERC20"><a href="#UniswapV2ERC20" class="headerlink" title="UniswapV2ERC20"></a>UniswapV2ERC20</h2><p>其中UniswapV2ERC20作为项目的LPT，它是一个ERC20标准的Token，当用户添加流动性时就能获得UniswapV2ERC20代币（Uni）。</p>
+<p>这里展现UniswapV2ERC20的元数据，ERC20标准不作过多介绍，详细查看：<a target="_blank" rel="noopener" href="https://eips.ethereum.org/EIPS/eip-20">ERC-20: Token Standard (ethereum.org)</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">contract UniswapV2ERC20 &#123;</span><br><span class="line">    using SafeMath for uint;</span><br><span class="line"></span><br><span class="line">    string public constant name = &#x27;Uniswap V2&#x27;;</span><br><span class="line">    string public constant symbol = &#x27;UNI-V2&#x27;;</span><br><span class="line">    uint8 public constant decimals = 18;</span><br><span class="line">    // ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="UniswapV2Factory"><a href="#UniswapV2Factory" class="headerlink" title="UniswapV2Factory"></a>UniswapV2Factory</h2><p>UniswapV2Factor功能大致能分为两个：打开手续费开关和创建pair。打开手续费通过setFeeTo(address _feeTo)函数实现，如果地址没有指定，交易池就不会收取协议费用。</p>
+<p>这里我们重点分析UniswapV2Factory的createPair函数。</p>
+<ul>
+<li>v2的createPair允许添加两个token地址。</li>
+<li>v2使用create2创建合约，等下会介绍create2创建合约的优势。</li>
+<li>v2会将ERC20 pair存储在合约中，不同ERC20之间的交易可以通过路由找寻。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">function createPair(address tokenA, address tokenB) external returns (address pair) &#123;</span><br><span class="line">        require(tokenA != tokenB, &#x27;UniswapV2: IDENTICAL_ADDRESSES&#x27;);</span><br><span class="line">        // 对token进行排序，这样就能支持任意的无序token pair创建</span><br><span class="line">        (address token0, address token1) = tokenA &lt; tokenB ? (tokenA, tokenB) : (tokenB, tokenA);</span><br><span class="line">        require(token0 != address(0), &#x27;UniswapV2: ZERO_ADDRESS&#x27;);</span><br><span class="line">         // 不允许已存在的pair创建</span><br><span class="line">        require(getPair[token0][token1] == address(0), &#x27;UniswapV2: PAIR_EXISTS&#x27;);</span><br><span class="line">        // 创建合约</span><br><span class="line">        bytes memory bytecode = type(UniswapV2Pair).creationCode;</span><br><span class="line">        bytes32 salt = keccak256(abi.encodePacked(token0, token1));</span><br><span class="line">        assembly &#123;</span><br><span class="line">            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)</span><br><span class="line">        &#125;</span><br><span class="line">        IUniswapV2Pair(pair).initialize(token0, token1);</span><br><span class="line">        // 存储ERC20 pair到工厂中</span><br><span class="line">        getPair[token0][token1] = pair;</span><br><span class="line">        getPair[token1][token0] = pair; // populate mapping in the reverse direction</span><br><span class="line">        allPairs.push(pair);</span><br><span class="line">        // 触发事件</span><br><span class="line">        emit PairCreated(token0, token1, pair, allPairs.length);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="create2"><a href="#create2" class="headerlink" title="create2"></a>create2</h3><p>上面介绍了，Uniswap工厂合约使用内联汇编中的create2创建合约，下面就详细介绍create2的作用。</p>
+<p><code>create2(value, offset, size, salt)</code>:create2和create功能相同，能够从内存中指定offset提供的初始化代码创建新合约。但是create2部署的合约会使用salt能得到一个确定的合约地址。</p>
+<ul>
+<li>value：向创建合约发送的ETH，单位为wei。</li>
+<li>offset：内存中的字节偏移量，以字节为单位，新帐户的初始化代码。。</li>
+<li>size：要复制代码的大小。</li>
+<li>salt：用于在确定地址上创建新帐户的32字节值。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bytes memory bytecode = type(UniswapV2Pair).creationCode;</span><br><span class="line">bytes32 salt = keccak256(abi.encodePacked(token0, token1));</span><br><span class="line">assembly &#123;</span><br><span class="line">            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解释上面的代码：</p>
+<ul>
+<li>通过type(UniswapV2Pair).creationCode获得包含创建合约字节码的内存字节数组。</li>
+<li>用输入的token pair参数作为salt，并使用abi.encodePacked进行编码。</li>
+<li>使用create2创建合约。</li>
+</ul>
+<h3 id="用create2创建一个合约（工厂模式）"><a href="#用create2创建一个合约（工厂模式）" class="headerlink" title="用create2创建一个合约（工厂模式）"></a>用create2创建一个合约（工厂模式）</h3><p><strong>工厂代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line">  </span><br><span class="line">import &quot;./Part.sol&quot;;</span><br><span class="line"></span><br><span class="line">interface IPart &#123;</span><br><span class="line">    function initialize(uint, uint) external;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract Factory &#123;</span><br><span class="line"></span><br><span class="line">    function create2Test(uint _type, uint _szie) external returns (address part) &#123;</span><br><span class="line">        bytes memory bytecode = type(Part).creationCode;</span><br><span class="line">        bytes32 salt = keccak256(abi.encodePacked(_type,_szie));</span><br><span class="line">        assembly &#123;</span><br><span class="line">            part := create2(0, add(bytecode, 32), mload(bytecode), salt)</span><br><span class="line">        &#125;</span><br><span class="line">        IPart(part).initialize(_type, _szie);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>零件代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// SPDX-License-Identifier: MIT</span><br><span class="line">pragma solidity ^0.8.0;</span><br><span class="line"></span><br><span class="line">contract Part &#123;</span><br><span class="line"></span><br><span class="line">    uint public Type;</span><br><span class="line">    uint public Szie;</span><br><span class="line"></span><br><span class="line">    function initialize(uint _type, uint _szie) external &#123;</span><br><span class="line">        Type =_type;</span><br><span class="line">        Szie = _szie;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在我们研究一下create2代码在EVM是怎样工作从而来理解create2。代码部署之后，我们使用create2Test部署part合约，进入remix调试模式。</p>
+<p>opcode跳到create2附近</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_10.jpg" alt="v2_10"></p>
+<p>此时我们观察EVM栈和内存的状态，内存中地址0x80是存放bytecode(part合约)的长度值，我们能够知道合约大小为0x1a7，合约代码存储内存中0xc0~0x240。</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_11.jpg" alt="v2_11"></p>
+<p>使用调试器进入到0186步，这时栈会执行cretae2指令。我们继续观察栈的状态，此时栈压入了四个值，分别是：<code>0x00</code>，<code>0xa0</code>，<code>0x1a7</code>，<code>0xcc69885fda6bcc1a4ace058b4a62bf5e179ea78fd58a1ccd71c22cc9b688792f</code></p>
+<p>我们分析一下这几个值是如何计算的：</p>
+<ul>
+<li>首先0xcc69…792f是两个参数的keccak256得到的，在create2参数入栈时，这个hash值就计算在栈顶，通过DUP将其复制在栈顶</li>
+<li>然后栈读到MLOAD命令，将bytecode在内存中的偏移位置(offset)0x80中的值0x1a7加载到栈顶。</li>
+<li>之后使用ADD命令，将bytecode在内存中的偏移位置(offset)0x80加上32 byte，获得的值是bytecode字节码开始的位置0xa0。我们可以简单的验证一下，使用0xa0+0x1a7（合约代码起始位置+合约长度）能计算出合约字节结束在内存中0x240位置</li>
+</ul>
+<blockquote>
+<p>注：该部分需要掌握solidity储存布局和EVM指令集相关知识。可以参考笔者以下文章：<a href="https://salbt.github.io/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/#%E5%8A%A8%E6%80%81%E6%95%B0%E7%BB%84%E5%AD%98%E5%82%A8">合约安全(一)-数据存储 - Salbt’s blog</a>、<a href="https://salbt.github.io/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/">深入EVM(二)-EVM指令集 - Salbt’s blog</a></p>
+</blockquote>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_12.jpg" alt="v2_12"></p>
+<h2 id="UniswapV2Pair"><a href="#UniswapV2Pair" class="headerlink" title="UniswapV2Pair"></a>UniswapV2Pair</h2><p>UniswapV2Pair合约继承了UniswapV2ERC20，它在pair中会跟踪两个ERC20的储备金数量，并用blockTimestampLast记录储备金更新的时间，可以使用getReserves()函数获取这三个值。实现了两个TWAP的累加器。</p>
+<ul>
+<li>reserve0，reserve1：两中Token储备金数量。</li>
+<li>blockTimestampLast：上一次储备金更新的时间。</li>
+<li>price0CumulativeLast，price1CumulativeLast：TWAP累计器</li>
+<li>kLast：流动性，kLast&#x3D;reserve0 * reserve1</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">contract UniswapV2Pair is UniswapV2ERC20 &#123;</span><br><span class="line"></span><br><span class="line">    uint112 private reserve0;           // uses single storage slot, accessible via getReserves</span><br><span class="line">    uint112 private reserve1;           // uses single storage slot, accessible via getReserves</span><br><span class="line">    uint32  private blockTimestampLast; // uses single storage slot, accessible via getReserves</span><br><span class="line"></span><br><span class="line">    uint public price0CumulativeLast;</span><br><span class="line">    uint public price1CumulativeLast;</span><br><span class="line">	uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>UniswapV2Pair功能就是向Periphery提供修改上面参数功能。在Uniswap进行业务时，会使用swap买卖token，需要更新池中reserves的值并更新TWAP。使用addLiquidity会增加流动性并mint LPT、使用removeLiquidity会减少流动性并burn LPT</p>
+<h3 id="更新Reserver和TWAP"><a href="#更新Reserver和TWAP" class="headerlink" title="更新Reserver和TWAP"></a>更新Reserver和TWAP</h3><p>_update首先会更新TWAP累加器：</p>
+<ul>
+<li>dT &#x3D; blockTimestamp(当前时间) - blockTimestampLast(上一次更新时间)。</li>
+<li>price Acc &#x3D; price0CumulativeLast + (_reserve1&#x2F; _reserve0)*dT</li>
+</ul>
+<p>然后根据输入的新的token的储备金balance更新reserve。</p>
+<ul>
+<li>reserve &#x3D; uint112(balance)</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">// update reserves and, on the first call per block, price accumulators</span><br><span class="line">    function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private &#123;</span><br><span class="line">        require(balance0 &lt;= type(uint112).max &amp;&amp; balance1 &lt;= type(uint112).max, &#x27;UniswapV2: OVERFLOW&#x27;);</span><br><span class="line">        uint32 blockTimestamp = uint32(block.timestamp % 2**32);</span><br><span class="line">        uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired</span><br><span class="line">        if (timeElapsed &gt; 0 &amp;&amp; _reserve0 != 0 &amp;&amp; _reserve1 != 0) &#123;</span><br><span class="line">            // * never overflows, and + overflow is desired</span><br><span class="line">            price0CumulativeLast += uint(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;</span><br><span class="line">            price1CumulativeLast += uint(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;</span><br><span class="line">        &#125;</span><br><span class="line">        reserve0 = uint112(balance0);</span><br><span class="line">        reserve1 = uint112(balance1);</span><br><span class="line">        blockTimestampLast = blockTimestamp;</span><br><span class="line">        emit Sync(reserve0, reserve1);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="具有闪电贷的Swap"><a href="#具有闪电贷的Swap" class="headerlink" title="具有闪电贷的Swap"></a>具有闪电贷的Swap</h3><p>UniswapV2Pair包含了最低层次的Swap，<strong>这个swap主要负责将卖出的token通过safeTransfer发送给to地址</strong>。如果传入的参数包含data部分，swap会进入一个回调函数uniswapV2Call触发flash swap。具体代码过程如下：</p>
+<ul>
+<li>检查输出token是否合法，不能通过有两个amount0Out &gt; 0。</li>
+<li>获取当前两个token的储备金，并检查amountOut是否超过reserve。</li>
+<li>检查to的地址是否合法，to地址不能为token地址。</li>
+<li>转账<ul>
+<li>如果amountOut&gt;0就向to转账。</li>
+<li>如果data存在，转账之后会进入到uniswapV2Call函数触发flash swap。</li>
+</ul>
+</li>
+<li>计算新流动性k<sub>new</sub> &gt;&#x3D; k<sub>pervious</sub><ul>
+<li>其中k<sub>new</sub> &#x3D; (x<sub>new</sub> - dx * 0.03) * y<sub>new</sub></li>
+<li>k<sub>pervious</sub> &#x3D; x<sub>pervious</sub> * y<sub>pervious</sub></li>
+</ul>
+</li>
+<li>使用_update更新</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">// this low-level function should be called from a contract which performs important safety checks</span><br><span class="line">    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock &#123;</span><br><span class="line">        require(amount0Out &gt; 0 || amount1Out &gt; 0, &#x27;UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT&#x27;);</span><br><span class="line">        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings</span><br><span class="line">        require(amount0Out &lt; _reserve0 &amp;&amp; amount1Out &lt; _reserve1, &#x27;UniswapV2: INSUFFICIENT_LIQUIDITY&#x27;);</span><br><span class="line"></span><br><span class="line">        uint balance0;</span><br><span class="line">        uint balance1;</span><br><span class="line">        &#123; // scope for _token&#123;0,1&#125;, avoids stack too deep errors</span><br><span class="line">        address _token0 = token0;</span><br><span class="line">        address _token1 = token1;</span><br><span class="line">        require(to != _token0 &amp;&amp; to != _token1, &#x27;UniswapV2: INVALID_TO&#x27;);</span><br><span class="line">        if (amount0Out &gt; 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens</span><br><span class="line">        if (amount1Out &gt; 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens</span><br><span class="line">        if (data.length &gt; 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);</span><br><span class="line">        balance0 = IERC20(_token0).balanceOf(address(this));</span><br><span class="line">        balance1 = IERC20(_token1).balanceOf(address(this));</span><br><span class="line">        &#125;</span><br><span class="line">        uint amount0In = balance0 &gt; _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;</span><br><span class="line">        uint amount1In = balance1 &gt; _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;</span><br><span class="line">        require(amount0In &gt; 0 || amount1In &gt; 0, &#x27;UniswapV2: INSUFFICIENT_INPUT_AMOUNT&#x27;);</span><br><span class="line">        &#123; // scope for reserve&#123;0,1&#125;Adjusted, avoids stack too deep errors</span><br><span class="line">        uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));</span><br><span class="line">        uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));</span><br><span class="line">        require(balance0Adjusted.mul(balance1Adjusted) &gt;= uint(_reserve0).mul(_reserve1).mul(1000**2), &#x27;UniswapV2: K&#x27;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        _update(balance0, balance1, _reserve0, _reserve1);</span><br><span class="line">        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用flash swap要实现IUniswapV2Callee接口，可以参考代码：<a target="_blank" rel="noopener" href="https://github.com/UV-Labs/Tutorials/blob/main/Flash_swap/contracts/flashswap.sol">Tutorials&#x2F;Flash_swap&#x2F;contracts&#x2F;flashswap.sol at main · UV-Labs&#x2F;Tutorials (github.com)</a></p>
+<h3 id="手续费"><a href="#手续费" class="headerlink" title="手续费"></a>手续费</h3><p>如果开启手续费，Uniswap会在mint和brun时收取协议费用。合约的_mintFee函数会根据收取1&#x2F;6的LPT增值部分，通过增发LPT的方式分走这部分利润。</p>
+<p>在UniswapV2Factor能够指定协议费用的收取地址。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)</span><br><span class="line">    function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) &#123;</span><br><span class="line">        address feeTo = IUniswapV2Factory(factory).feeTo();</span><br><span class="line">        feeOn = feeTo != address(0);</span><br><span class="line">        uint _kLast = kLast; // gas savings</span><br><span class="line">        if (feeOn) &#123;</span><br><span class="line">            if (_kLast != 0) &#123;</span><br><span class="line">                uint rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));</span><br><span class="line">                uint rootKLast = Math.sqrt(_kLast);</span><br><span class="line">                if (rootK &gt; rootKLast) &#123;</span><br><span class="line">                    uint numerator = totalSupply.mul(rootK.sub(rootKLast));</span><br><span class="line">                    uint denominator = rootK.mul(5).add(rootKLast);</span><br><span class="line">                    uint liquidity = numerator / denominator;</span><br><span class="line">                    if (liquidity &gt; 0) _mint(feeTo, liquidity);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else if (_kLast != 0) &#123;</span><br><span class="line">            kLast = 0;</span><br><span class="line">        &#125;     </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Uniswap-v2-Periphery"><a href="#Uniswap-v2-Periphery" class="headerlink" title="Uniswap-v2 Periphery"></a>Uniswap-v2 Periphery</h1><p>Uniswap-v2 Periphery有两个函数:UniswapV2Migrator、UniswapV2Router02（UniswapV2Router01是02的旧版本）。</p>
+<p>UniswapV2Migrator能够将v1池子迁移到v2的合约，这里不过多介绍，可以直接去了解源码：<a target="_blank" rel="noopener" href="https://github.com/Uniswap/v2-periphery/blob/master/contracts/UniswapV2Migrator.sol">v2-periphery&#x2F;contracts&#x2F;UniswapV2Migrator.sol at master · Uniswap&#x2F;v2-periphery (github.com)</a></p>
+<h2 id="UniswapV2Router02"><a href="#UniswapV2Router02" class="headerlink" title="UniswapV2Router02"></a>UniswapV2Router02</h2><p>UniswapV2Router02实现了uniswap的业务代码，比如：addLiquidity、addLiquidityETH、removeLiquidity、removeLiquidityETH、swapExactTokensForTokens和swapTokensForExactTokens等方法。</p>
+<p>我们讲到UniswapV2Pair中的swap是最底层的功能函数，负责将买到的token发送给交易者。而UniswapV2Router02提供的swap会先将卖出的token发送给Pair。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">function swapExactTokensForTokens(</span><br><span class="line">        uint amountIn,</span><br><span class="line">        uint amountOutMin,</span><br><span class="line">        address[] calldata path,</span><br><span class="line">        address to,</span><br><span class="line">        uint deadline</span><br><span class="line">    ) external virtual override ensure(deadline) returns (uint[] memory amounts) &#123;</span><br><span class="line">        amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);</span><br><span class="line">        require(amounts[amounts.length - 1] &gt;= amountOutMin, &#x27;UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT&#x27;);</span><br><span class="line">        TransferHelper.safeTransferFrom(</span><br><span class="line">            path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]</span><br><span class="line">        );</span><br><span class="line">        _swap(amounts, path, to);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以从其中一个swap功能看到，在调用_swap前会先使用TransferHelper.safeTransferFrom发送卖出的token。</p>
+<h3 id="寻找任意pair之间的路径"><a href="#寻找任意pair之间的路径" class="headerlink" title="寻找任意pair之间的路径"></a>寻找任意pair之间的路径</h3><p>下面分析Periphery如何进行任意pair对之间的交易。</p>
+<ul>
+<li>使用for对path进行遍历。</li>
+<li>每次遍历获得前一个token和后一个token的pair。</li>
+<li>在pair中进行交换：<ul>
+<li>如果没有遍历完，交换得到的token应该发送给下一个pair，回到开始继续。</li>
+<li>如果遍历完，将得到的token发送给to地址。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// **** SWAP ****</span><br><span class="line">  // requires the initial amount to have already been sent to the first pair</span><br><span class="line">  function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual &#123;</span><br><span class="line">      for (uint i; i &lt; path.length - 1; i++) &#123;</span><br><span class="line">          (address input, address output) = (path[i], path[i + 1]);</span><br><span class="line">          (address token0,) = UniswapV2Library.sortTokens(input, output);</span><br><span class="line">          uint amountOut = amounts[i + 1];</span><br><span class="line">          (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));</span><br><span class="line">          address to = i &lt; path.length - 2 ? UniswapV2Library.pairFor(factory, output, path[i + 2]) : _to;</span><br><span class="line">          IUniswapV2Pair(UniswapV2Library.pairFor(factory, input, output)).swap(</span><br><span class="line">              amount0Out, amount1Out, to, new bytes(0)</span><br><span class="line">          );</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>图例：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/uniswapv2/v2_13.jpg" alt="v2_13"></p>
+<blockquote>
+<p>UniswapV2Router02相比于UniswapV2Router01提供swap的限价订单，基于_swapSupportingFeeOnTransferTokens底层函数实现swapExactTokensForTokensSupportingFeeOnTransferTokens、swapExactETHForTokensSupportingFeeOnTransferTokens等。</p>
+</blockquote>
+<h1 id="Uniswap工具库"><a href="#Uniswap工具库" class="headerlink" title="Uniswap工具库"></a>Uniswap工具库</h1><p>Uniswap v2使用了多个数学库，比如FixedPoint、Math、SafeMath和UQ112x112，感兴趣的可以去看一下源码。我们需要关注的是UniswapV2Library和UniswapV2OracleLibrary。</p>
+<p>UniswapV2Library提供都是无需gas费的方法，能够查询pair地址、pair之间价格、获得pair储备金。</p>
+<p>UniswapV2OracleLibrary提供查看TWAP的方法。</p>
+<blockquote>
+<p>注：使用pairFor生成地址时，需要更改其中的硬编码部分。计算pair地址部分使用了<code>c779f884b0d3b96c99d18260ba7f1b2c9a66dcddcacbcdf30f304d308cd4976e</code>。需要使用keccak256(type(UniswapV2Pair).creationCode)重新计算init code hash</p>
+<p>Periphery计算pair地址也是通过这种方式得到的，如果不更改，合约添加流动时就会报错。</p>
+</blockquote>
+<p>重新计算 init code hash</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function pairCodeHash() external pure returns (bytes32) &#123;</span><br><span class="line">	return keccak256(type(UniswapV2Pair).creationCode);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/Uniswap">Uniswap Labs (github.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Jeiwan/uniswapv2-contracts">https://github.com/Jeiwan/uniswapv2-contracts</a></li>
+<li><a target="_blank" rel="noopener" href="https://medium.com/buildbear/flash-swap-5bcdbd9aaa14">Flash Swaps! Learn how to use Uniswap’s Flashswap feature on the mainnet | BuildBear Labs (medium.com)</a></li>
+</ol>
+
+<div class="article-footer fs14">
+    <section id="license">
+      <div class="header"><span>许可协议</span></div>
+      <div class="body"><p>本文采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">署名-非商业性使用-相同方式共享 4.0 国际</a> 许可协议，转载请注明出处。</p>
+</div>
+    </section>
+    </div>
+</article>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/07/22/AMM%E6%B7%B1%E5%85%A5%E4%B8%8E%E8%A7%A3%E6%9E%90/">AMM深入与解析</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/22/%E5%A6%82%E4%BD%95%E5%8E%BB%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-Message-Queue/">如何去实现一个消息队列(Message Queue)</a></div></section></div>
+
+
+
+
+
+
+<footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Salbt</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1">Stellar 1.28.1</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
+</div></footer>
+<div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Uniswap-v2%E6%9E%B6%E6%9E%84"><span class="toc-text">Uniswap-v2架构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8Core-Periphery%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84"><span class="toc-text">为什么要使用Core-Periphery代码结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Core%E5%92%8CPeriphery%E5%8C%85%E5%90%AB%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">Core和Periphery包含的代码</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Uniswap-v2-Core"><span class="toc-text">Uniswap-v2 Core</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#UniswapV2ERC20"><span class="toc-text">UniswapV2ERC20</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UniswapV2Factory"><span class="toc-text">UniswapV2Factory</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#create2"><span class="toc-text">create2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8create2%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%90%88%E7%BA%A6%EF%BC%88%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%EF%BC%89"><span class="toc-text">用create2创建一个合约（工厂模式）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UniswapV2Pair"><span class="toc-text">UniswapV2Pair</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0Reserver%E5%92%8CTWAP"><span class="toc-text">更新Reserver和TWAP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B7%E6%9C%89%E9%97%AA%E7%94%B5%E8%B4%B7%E7%9A%84Swap"><span class="toc-text">具有闪电贷的Swap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%8B%E7%BB%AD%E8%B4%B9"><span class="toc-text">手续费</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Uniswap-v2-Periphery"><span class="toc-text">Uniswap-v2 Periphery</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#UniswapV2Router02"><span class="toc-text">UniswapV2Router02</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BB%E6%89%BE%E4%BB%BB%E6%84%8Fpair%E4%B9%8B%E9%97%B4%E7%9A%84%E8%B7%AF%E5%BE%84"><span class="toc-text">寻找任意pair之间的路径</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Uniswap%E5%B7%A5%E5%85%B7%E5%BA%93"><span class="toc-text">Uniswap工具库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a><a class="buttom" onclick="util.scrollComment()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.46 1.25h3.08c1.603 0 2.86 0 3.864.095c1.023.098 1.861.3 2.6.752a5.75 5.75 0 0 1 1.899 1.899c.452.738.654 1.577.752 2.6c.095 1.004.095 2.261.095 3.865v1.067c0 1.141 0 2.036-.05 2.759c-.05.735-.153 1.347-.388 1.913a5.75 5.75 0 0 1-3.112 3.112c-.805.334-1.721.408-2.977.43a10.81 10.81 0 0 0-.929.036c-.198.022-.275.054-.32.08c-.047.028-.112.078-.224.232c-.121.166-.258.396-.476.764l-.542.916c-.773 1.307-2.69 1.307-3.464 0l-.542-.916a10.605 10.605 0 0 0-.476-.764c-.112-.154-.177-.204-.224-.232c-.045-.026-.122-.058-.32-.08c-.212-.023-.49-.03-.93-.037c-1.255-.021-2.171-.095-2.976-.429A5.75 5.75 0 0 1 1.688 16.2c-.235-.566-.338-1.178-.389-1.913c-.049-.723-.049-1.618-.049-2.76v-1.066c0-1.604 0-2.86.095-3.865c.098-1.023.3-1.862.752-2.6a5.75 5.75 0 0 1 1.899-1.899c.738-.452 1.577-.654 2.6-.752C7.6 1.25 8.857 1.25 10.461 1.25M6.739 2.839c-.914.087-1.495.253-1.959.537A4.25 4.25 0 0 0 3.376 4.78c-.284.464-.45 1.045-.537 1.96c-.088.924-.089 2.11-.089 3.761v1c0 1.175 0 2.019.046 2.685c.045.659.131 1.089.278 1.441a4.25 4.25 0 0 0 2.3 2.3c.515.214 1.173.294 2.429.316h.031c.398.007.747.013 1.037.045c.311.035.616.104.909.274c.29.17.5.395.682.645c.169.232.342.525.538.856l.559.944a.52.52 0 0 0 .882 0l.559-.944c.196-.331.37-.624.538-.856c.182-.25.392-.476.682-.645c.293-.17.598-.24.909-.274c.29-.032.639-.038 1.037-.045h.032c1.255-.022 1.913-.102 2.428-.316a4.25 4.25 0 0 0 2.3-2.3c.147-.352.233-.782.278-1.441c.046-.666.046-1.51.046-2.685v-1c0-1.651 0-2.837-.089-3.762c-.087-.914-.253-1.495-.537-1.959a4.25 4.25 0 0 0-1.403-1.403c-.464-.284-1.045-.45-1.96-.537c-.924-.088-2.11-.089-3.761-.089h-3c-1.651 0-2.837 0-3.762.089" clip-rule="evenodd"/><path fill="currentColor" d="M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0"/></svg><span>参与讨论</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
+  <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+  </button>
+  <button type='button' style='display:none' class='mobile-only leftbar-toggle mobile' onclick='sidebar.leftbar()'>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 11c0-3.771 0-5.657 1.172-6.828C4.343 3 6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172C22 5.343 22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828C19.657 21 17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172C2 18.657 2 16.771 2 13z"/><path id="sep" stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3"/></g></svg>
+  </button>
+</div>
+</div><div class="scripts">
+<script type="text/javascript">
+  const ctx = {
+    date_suffix: {
+      just: `刚刚`,
+      min: `分钟前`,
+      hour: `小时前`,
+      day: `天前`,
+    },
+    root : `/`,
+  };
+
+  // required plugins (only load if needs)
+  if (`local_search`) {
+    ctx.search = {};
+    ctx.search.service = `local_search`;
+    if (ctx.search.service == 'local_search') {
+      let service_obj = Object.assign({}, `{"field":"all","path":"/search.json","content":true,"codeblock":true,"sort":"-date"}`);
+      ctx.search[ctx.search.service] = service_obj;
+    }
+  }
+  const def = {
+    avatar: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/avatar/round/3442075.svg`,
+    cover: `https://gcore.jsdelivr.net/gh/cdn-x/placeholder@1.0.12/cover/76b86c0226ffd.svg`,
+  };
+  const deps = {
+    jquery: `https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js`,
+    marked: `https://cdn.bootcdn.net/ajax/libs/marked/4.0.18/marked.min.js`
+  }
+  
+
+</script>
+
+<script type="text/javascript">
+  const utils = {
+    // 懒加载 css https://github.com/filamentgroup/loadCSS
+    css: (href, before, media, attributes) => {
+      var doc = window.document;
+      var ss = doc.createElement("link");
+      var ref;
+      if (before) {
+        ref = before;
+      } else {
+        var refs = (doc.body || doc.getElementsByTagName("head")[0]).childNodes;
+        ref = refs[refs.length - 1];
+      }
+      var sheets = doc.styleSheets;
+      if (attributes) {
+        for (var attributeName in attributes) {
+          if (attributes.hasOwnProperty(attributeName)) {
+            ss.setAttribute(attributeName, attributes[attributeName]);
+          }
+        }
+      }
+      ss.rel = "stylesheet";
+      ss.href = href;
+      ss.media = "only x";
+      function ready(cb) {
+        if (doc.body) {
+          return cb();
+        }
+        setTimeout(function () {
+          ready(cb);
+        });
+      }
+      ready(function () {
+        ref.parentNode.insertBefore(ss, before ? ref : ref.nextSibling);
+      });
+      var onloadcssdefined = function (cb) {
+        var resolvedHref = ss.href;
+        var i = sheets.length;
+        while (i--) {
+          if (sheets[i].href === resolvedHref) {
+            return cb();
+          }
+        }
+        setTimeout(function () {
+          onloadcssdefined(cb);
+        });
+      };
+      function loadCB() {
+        if (ss.addEventListener) {
+          ss.removeEventListener("load", loadCB);
+        }
+        ss.media = media || "all";
+      }
+      if (ss.addEventListener) {
+        ss.addEventListener("load", loadCB);
+      }
+      ss.onloadcssdefined = onloadcssdefined;
+      onloadcssdefined(loadCB);
+      return ss;
+    },
+
+    js: (src, opt) => new Promise((resolve, reject) => {
+      var script = document.createElement('script');
+      if (src.startsWith('/')){
+        src = ctx.root + src.substring(1);
+      }
+      script.src = src;
+      if (opt) {
+        for (let key of Object.keys(opt)) {
+          script[key] = opt[key]
+        }
+      } else {
+        // 默认异步，如果需要同步，第二个参数传入 {} 即可
+        script.async = true
+      }
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    }),
+
+    jq: (fn) => {
+      if (typeof jQuery === 'undefined') {
+        utils.js(deps.jquery).then(fn)
+      } else {
+        fn()
+      }
+    },
+    
+    onLoading: (el) => {
+      if (el) {
+        $(el).append('<div class="loading-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" stroke-opacity=".3" d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="1.3s" values="60;0"/></path><path stroke-dasharray="15" stroke-dashoffset="15" d="M12 3C16.9706 3 21 7.02944 21 12"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.3s" values="15;0"/><animateTransform attributeName="transform" dur="1.5s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></path></g></svg></div>');
+      }
+    },
+    onLoadSuccess: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap').remove();
+      }
+    },
+    onLoadFailure: (el) => {
+      if (el) {
+        $(el).find('.loading-wrap svg').remove();
+        $(el).find('.loading-wrap').append('<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path stroke-dasharray="60" stroke-dashoffset="60" d="M12 3L21 20H3L12 3Z"><animate fill="freeze" attributeName="stroke-dashoffset" dur="0.5s" values="60;0"/></path><path stroke-dasharray="6" stroke-dashoffset="6" d="M12 10V14"><animate fill="freeze" attributeName="stroke-dashoffset" begin="0.6s" dur="0.2s" values="6;0"/></path></g><circle cx="12" cy="17" r="1" fill="currentColor" fill-opacity="0"><animate fill="freeze" attributeName="fill-opacity" begin="0.8s" dur="0.4s" values="0;1"/></circle></svg>');
+        $(el).find('.loading-wrap').addClass('error');
+      }
+    },
+    request: (el, url, callback, onFailure) => {
+      let retryTimes = 3;
+      utils.onLoading(el);
+      function req() {
+        return new Promise((resolve, reject) => {
+          let status = 0; // 0 等待 1 完成 2 超时
+          let timer = setTimeout(() => {
+            if (status === 0) {
+              status = 2;
+              timer = null;
+              reject('请求超时');
+              if (retryTimes == 0) {
+                onFailure();
+              }
+            }
+          }, 5000);
+          fetch(url).then(function(response) {
+            if (status !== 2) {
+              clearTimeout(timer);
+              resolve(response);
+              timer = null;
+              status = 1;
+            }
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error('Network response was not ok.');
+          }).then(function(data) {
+            retryTimes = 0;
+            utils.onLoadSuccess(el);
+            callback(data);
+          }).catch(function(error) {
+            if (retryTimes > 0) {
+              retryTimes -= 1;
+              setTimeout(() => {
+                req();
+              }, 5000);
+            } else {
+              utils.onLoadFailure(el);
+              onFailure();
+            }
+          });
+        });
+      }
+      req();
+    },
+  };
+</script>
+
+<script>
+  const sidebar = {
+    leftbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    rightbar: () => {
+      if (l_body) {
+        l_body.toggleAttribute('rightbar');
+        l_body.removeAttribute('leftbar');
+      }
+    },
+    dismiss: () => {
+      if (l_body) {
+        l_body.removeAttribute('leftbar');
+        l_body.removeAttribute('rightbar');
+      }
+    },
+    toggleTOC: () => {
+      document.querySelector('#data-toc').classList.toggle('collapse');
+    }
+  }
+</script>
+
+<!-- required -->
+<script src="/js/main.js?v=1.28.1" async></script>
+
+<!-- optional -->
+
+
+
+<script defer>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.services = Object.assign({}, JSON.parse(`{"mdrender":{"js":"/js/services/mdrender.js"},"siteinfo":{"js":"/js/services/siteinfo.js","api":null},"ghinfo":{"js":"/js/services/ghinfo.js"},"sites":{"js":"/js/services/sites.js"},"friends":{"js":"/js/services/friends.js"},"timeline":{"js":"/js/services/timeline.js"},"fcircle":{"js":"/js/services/fcircle.js"},"weibo":{"js":"/js/services/weibo.js"},"memos":{"js":"/js/services/memos.js"}}`));
+    for (let id of Object.keys(ctx.services)) {
+      const js = ctx.services[id].js;
+      if (id == 'siteinfo') {
+        ctx.cardlinks = document.querySelectorAll('a.link-card[cardlink]');
+        if (ctx.cardlinks?.length > 0) {
+          utils.js(js, { defer: true }).then(function () {
+            setCardLink(ctx.cardlinks);
+          });
+        }
+      } else {
+        const els = document.getElementsByClassName(`ds-${id}`);
+        if (els?.length > 0) {
+          utils.jq(() => {
+            if (id == 'timeline' || 'memos' || 'marked') {
+              utils.js(deps.marked).then(function () {
+                utils.js(js, { defer: true });
+              });
+            } else {
+              utils.js(js, { defer: true });
+            }
+          });
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    ctx.search = {
+      path: `/search.json`,
+    }
+    utils.js('/js/search/local-search.js', { defer: true });
+  });
+</script><script>
+  window.FPConfig = {
+    delay: 0,
+    ignoreKeywords: [],
+    maxRPS: 5,
+    hoverDelay: 25
+  };
+</script>
+<script defer src="https://cdn.bootcdn.net/ajax/libs/flying-pages/2.1.2/flying-pages.min.js"></script><script defer src="https://cdn.bootcdn.net/ajax/libs/vanilla-lazyload/17.8.4/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazy",
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    window.lazyLoadInstance?.update();
+  });
+</script><script>
+  ctx.fancybox = {
+    selector: `.timenode p>img`,
+    css: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.min.css`,
+    js: `https://cdn.bootcdn.net/ajax/libs/fancyapps-ui/5.0.22/fancybox/fancybox.umd.min.js`
+  };
+  var selector = '[data-fancybox]:not(.error)';
+  if (ctx.fancybox.selector) {
+    selector += `, ${ctx.fancybox.selector}`
+  }
+  var needFancybox = document.querySelectorAll(selector).length !== 0;
+  if (!needFancybox) {
+    const els = document.getElementsByClassName('ds-memos');
+    if (els != undefined && els.length > 0) {
+      needFancybox = true;
+    }
+  }
+  if (needFancybox) {
+    utils.css(ctx.fancybox.css);
+    utils.js(ctx.fancybox.js, { defer: true }).then(function () {
+      Fancybox.bind(selector, {
+        hideScrollbar: false,
+        Thumbs: {
+          autoStart: false,
+        },
+        caption: (fancybox, slide) => {
+          return slide.triggerEl.alt || slide.triggerEl.dataset.caption || null
+        }
+      });
+    })
+  }
+</script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+    const swiper_api = document.getElementById('swiper-api');
+    if (swiper_api != undefined) {
+      utils.css(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.css`);
+      utils.js(`https://unpkg.com/swiper@10.3.1/swiper-bundle.min.js`, { defer: true }).then(function () {
+        const effect = swiper_api.getAttribute('effect') || '';
+        var swiper = new Swiper('.swiper#swiper-api', {
+          slidesPerView: 'auto',
+          spaceBetween: 8,
+          centeredSlides: true,
+          effect: effect,
+          rewind: true,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      })
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.codeElements = document.querySelectorAll('.code');
+    if (window.codeElements.length > 0) {
+      ctx.copycode = {
+        default_text: `Copy`,
+        success_text: `Copied`,
+        toast: `复制成功`,
+      };
+      utils.js('/js/plugins/copycode.js');
+    }
+  });
+</script>
+
+
+<!-- inject -->
+
+</div></body></html>
