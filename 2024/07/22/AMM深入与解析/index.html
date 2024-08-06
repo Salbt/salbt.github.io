@@ -20,19 +20,31 @@
   <title>AMM深入与解析 - Salbt's blog</title>
 
   
-    <meta property="og:type" content="article">
+    <meta name="description" content="介绍AMM原理和实现AMM各种数学模型，了解AMM之后会具体介绍一些使用AMM带来的风险。">
+<meta property="og:type" content="article">
 <meta property="og:title" content="AMM深入与解析">
 <meta property="og:url" content="http://salbt.github.io/2024/07/22/AMM%E6%B7%B1%E5%85%A5%E4%B8%8E%E8%A7%A3%E6%9E%90/index.html">
 <meta property="og:site_name" content="Salbt&#39;s blog">
+<meta property="og:description" content="介绍AMM原理和实现AMM各种数学模型，了解AMM之后会具体介绍一些使用AMM带来的风险。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://salbt.github.io/images/posts/AMM/%E8%AE%A2%E5%8D%95%E7%B0%BF.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/AMM/%E6%81%92%E5%AE%9A%E5%8A%A0%E6%9D%83%E4%B9%98%E7%A7%AF.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/AMM/%E7%A8%B3%E5%AE%9A%E4%BA%A4%E6%8D%A2.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/AMM/desmos-graph.png">
+<meta property="og:image" content="http://salbt.github.io/images/posts/AMM/sandwichDemo.jpg">
+<meta property="og:image" content="http://salbt.github.io/images/posts/AMM/%E6%97%A0%E5%81%BF%E6%8D%9F%E5%A4%B1.jpg">
 <meta property="article:published_time" content="2024-07-22T11:33:18.000Z">
-<meta property="article:modified_time" content="2024-07-22T11:33:18.240Z">
+<meta property="article:modified_time" content="2024-08-06T04:34:30.986Z">
 <meta property="article:author" content="Salbt">
+<meta property="article:tag" content="以太坊">
+<meta property="article:tag" content="区块链">
+<meta property="article:tag" content="DeFi">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://salbt.github.io/images/posts/AMM/%E8%AE%A2%E5%8D%95%E7%B0%BF.png">
   
   
   
-  
+  <meta name="keywords" content="以太坊,区块链,DeFi">
 
   <!-- feed -->
   
@@ -63,7 +75,7 @@
 <div class="widgets">
 
 
-<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/07/22/Uniswap-v2-%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(二)-源码分析</span></a><a class="item title" href="/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v1原理和源码分析</span></a><a class="item title" href="/2024/07/22/MEV-%E6%9C%80%E5%A4%A7%E5%8F%AF%E6%8F%90%E5%8F%96%E4%BB%B7%E5%80%BC%E5%92%8C%E5%AE%9E%E7%8E%B0/"><span class="title">MEV-最大可提取价值和实现</span></a><a class="item title" href="/2024/07/22/AMM%E6%B7%B1%E5%85%A5%E4%B8%8E%E8%A7%A3%E6%9E%90/"><span class="title">AMM深入与解析</span></a><a class="item title" href="/2024/07/17/Uniswap-v2(%E4%B8%80)%E5%8A%9F%E8%83%BD%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(一)-功能和原理分析</span></a><a class="item title" href="/2024/07/22/%E5%A6%82%E4%BD%95%E5%8E%BB%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97-Message-Queue/"><span class="title">如何去实现一个消息队列(Message Queue)</span></a><a class="item title" href="/2024/07/15/HTTP%E5%8D%8F%E8%AE%AE/"><span class="title">计算机网络应用层协议-HTTP</span></a><a class="item title" href="/2024/07/11/%E6%B7%B1%E5%85%A5EVM(%E4%B8%80)/"><span class="title">深入EVM(一)-EVM架构</span></a><a class="item title" href="/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/"><span class="title">合约安全(一)-数据存储</span></a><a class="item title" href="/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/"><span class="title">深入EVM(二)-EVM指令集</span></a></div></widget>
+<widget class="widget-wrapper post-list"><div class="widget-header dis-select"><span class="name">最近更新</span></div><div class="widget-body fs14"><a class="item title" href="/2024/07/22/AMM%E6%B7%B1%E5%85%A5%E4%B8%8E%E8%A7%A3%E6%9E%90/"><span class="title">AMM深入与解析</span></a><a class="item title" href="/2024/07/17/Uniswap-v2(%E4%B8%80)%E5%8A%9F%E8%83%BD%E5%92%8C%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(一)-功能和原理分析</span></a><a class="item title" href="/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v1原理和源码分析</span></a><a class="item title" href="/2024/07/22/Uniswap-v2-%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><span class="title">Uniswap-v2(二)-源码分析</span></a><a class="item title" href="/2024/07/15/HTTP%E5%8D%8F%E8%AE%AE/"><span class="title">计算机网络应用层协议-HTTP</span></a><a class="item title" href="/2024/07/11/%E6%B7%B1%E5%85%A5EVM(%E4%B8%80)/"><span class="title">深入EVM(一)-EVM架构</span></a><a class="item title" href="/2024/07/15/%E5%90%88%E7%BA%A6%E5%AE%89%E5%85%A8(%E4%B8%80)/"><span class="title">合约安全(一)-数据存储</span></a><a class="item title" href="/2024/07/12/%E6%B7%B1%E5%85%A5EVM(%E4%BA%8C)/"><span class="title">深入EVM(二)-EVM指令集</span></a><a class="item title" href="/2024/05/12/Maker-Introduce/"><span class="title">Maker协议介绍</span></a><a class="item title" href="/2024/05/28/%E5%B8%81%E5%AE%89%E9%92%B1%E5%8C%85%E8%BF%90%E4%BD%9C%E5%8E%9F%E7%90%86/"><span class="title">币安钱包运作原理</span></a></div></widget>
 </div>
 
 </div></aside><div class="l_main" id="main">
@@ -75,8 +87,8 @@
 <div class="article banner top">
   <div class="content">
     <div class="top bread-nav footnote"><div class="left"><div class="flex-row" id="breadcrumb"><a class="cap breadcrumb" href="/">主页</a>
-<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a></div>
-<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-07-22T11:33:18.000Z">2024-07-22</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-07-22T11:33:18.240Z">2024-07-22</time></span></div></div></div>
+<span class="sep"></span><a class="cap breadcrumb" href="/">文章</a><span class="sep"></span><a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/">区块链</a> <span class="sep"></span> <a class="cap breadcrumb-link" href="/categories/%E5%8C%BA%E5%9D%97%E9%93%BE/DeFi/">DeFi</a></div>
+<div class="flex-row" id="post-meta"><span class="text created">发布于：<time datetime="2024-07-22T11:33:18.000Z">2024-07-22</time></span><span class="sep updated"></span><span class="text updated">更新于：<time datetime="2024-08-06T04:34:30.986Z">2024-08-06</time></span></div></div></div>
     
     <div class="bottom only-title">
       
@@ -87,7 +99,116 @@
     </div>
     
   </div>
-  </div><article class="md-text content">
+  </div><article class="md-text content"><h1 id="自动做市商-AMM"><a href="#自动做市商-AMM" class="headerlink" title="自动做市商(AMM)"></a>自动做市商(AMM)</h1><p>笔者在<a href="https://salbt.github.io/2024/05/20/Uniswapv1%E4%BB%8B%E7%BB%8D%E5%92%8C%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Uniswap-v1原理和源码分析 - Salbt’s blog</a>中对AMM进行一些粗略的解释，以下我们将进一步阐述AMM在交易所中的应用和各种类型的衍生。</p>
+<h2 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h2><p><strong>流动性（Liquidity）</strong>：在AMM中的流动性是指将一种资产转化为另一种资产，这里资产可以是以太坊上的erc20代币</p>
+<p><strong>流动性池（Liquidity pools）</strong>：交易的代币池，可以理解为存放两个代币储备金的金库。交易者可以自由在金库中进行代币的买卖。</p>
+<p><strong>流动性提供者（Liquidity Provider，LP）</strong>：LP也可认为是做市商，LP可以根据池中代币权重添加储备金。他们通过向池子中交易收取交易费来获取利润。</p>
+<h2 id="去中心化交易所"><a href="#去中心化交易所" class="headerlink" title="去中心化交易所"></a>去中心化交易所</h2><p>去中心化交易所（Decentralized Exchange，简称DEX）是一种无需中央机构进行控制和管理的加密货币交易平台。在去中心化交易所中，交易通过智能合约直接在区块链上执行，用户可以在没有中介的情况下进行点对点交易。</p>
+<p>在当前公链上有两种方式实现的DEX：</p>
+<p>1.基于订单薄的DEX</p>
+<ul>
+<li><p>CLOB模式（Central Limit Order Book，中心限价订单簿），是一个出价和报价组成的权限透明账本。能够了解交易参与者买卖价格。</p>
+</li>
+<li><p>卖家可以以指定价格出售加密货币，买家可以以指定价格购买加密货币。当前加密货币价格是买卖价格集中那个区间的值。</p>
+</li>
+<li><p>订单薄模式在链上运行有明显的缺点。对于像以太坊这样TPS较低的公链，很难满足订单薄高频的交易需求</p>
+<blockquote>
+<p>这绝对是致命的缺点，有兴趣的小伙伴可以去了解下dydx，dydx最早就是在以太坊上使用订单薄模式的DEX。</p>
+</blockquote>
+</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/AMM/%E8%AE%A2%E5%8D%95%E7%B0%BF.png" alt="订单簿"></p>
+<center><font size=2>上图是比特币2024.5.12 12:11左右的价格</font></center>
+
+<p>2.基于流动性的DEX</p>
+<ul>
+<li>将流动性池作为DEXs智能合约上的代币储备（reserve）。</li>
+<li>AMM以一种算法的形式预测资产价格，链上的DEXs大多都式用AMM。</li>
+<li>为DEX添加流动的LP可以得到DEX的LPT（Liquidity Provider Token, LPT）作为奖励，LP可以通过出售增值的LPT获取收益。</li>
+</ul>
+<h2 id="各种类型的AMM"><a href="#各种类型的AMM" class="headerlink" title="各种类型的AMM"></a>各种类型的AMM</h2><p>如今链上主要的DEX有：uniswap、curve、pancakeSawp、Raydium、Balancer。</p>
+<blockquote>
+<p>想知道更多DEX可以在<a target="_blank" rel="noopener" href="https://defillama.com/dexs">defillam</a>a中获取</p>
+</blockquote>
+<p>现有流行的AMM类型数学函数如下：</p>
+<p>1.恒定乘积做市商公式：x * y &#x3D; k</p>
+<ul>
+<li>Uniswap、PancakeSwap、还有solana链上的Raydium都是恒定乘积的使用者，使用该算法的池子的流动性由两个代币的乘积获得。</li>
+<li>当x供应增加，y的供应就会减少，从而导致流动性k维持在一个恒定的值不变。</li>
+<li>当交易规模变大时，可能会出现巨大的滑点，我们将在稍后详细讲解滑点。</li>
+</ul>
+<p>2.恒定和做市商公式：x + y &#x3D; k</p>
+<ul>
+<li>恒定和在图像上表现为一条直线，它是零滑点的理想模型（它的成交均价为k，即任何一处交易曲线上发生的交易的其斜率不变）。</li>
+<li>对比恒定乘积公式，恒定和不能提供无限的流动性。套利者可以耗尽流动性池中全部的储备，流动性池也不能为其他交易者留下可用流动性。这种模式不适合大多数AMM使用。</li>
+</ul>
+<p>3.恒定加权乘积做市商：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/AMM/%E6%81%92%E5%AE%9A%E5%8A%A0%E6%9D%83%E4%B9%98%E7%A7%AF.png" alt="恒定加权乘积"></p>
+<ul>
+<li>Balancer是恒定加权乘积的使用者。恒定加权乘积是恒定乘积的一个变种，它允许在流动性池中添加多个代币，并使用该公式预测多个代币之间的价格。</li>
+<li>它的优点是，交易者能够在池中进行任意资产的互换。</li>
+</ul>
+<blockquote>
+<p> balancer的相关资料可以参考者篇文章：<a target="_blank" rel="noopener" href="https://www.coinvoice.cn/articles/31394">万字解析dYdX发展史：为何放弃L2，决意自建L1？ | CoinVoice</a></p>
+</blockquote>
+<p>4.稳定交换公式：</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/AMM/%E7%A8%B3%E5%AE%9A%E4%BA%A4%E6%8D%A2.png" alt="稳定交换"></p>
+<ul>
+<li>该公式由Curve推广，是恒定乘积与恒定和的混合体。</li>
+<li>当用户资产组合相对平衡时，交易会发生在恒定和曲线上；当不平衡时，交易会切换到恒定乘积曲线上。</li>
+<li>这个公式允许较低的滑点和无偿损失，但只适用于具有类似价值的资产，因为所需交易范围的价格总是接近于1。</li>
+</ul>
+<h1 id="AMM带来的风险"><a href="#AMM带来的风险" class="headerlink" title="AMM带来的风险"></a>AMM带来的风险</h1><p>AMM也不全部是优点，对于交易者和LP来说也有一定的风险：</p>
+<h2 id="滑点"><a href="#滑点" class="headerlink" title="滑点"></a>滑点</h2><p><strong>如何理解滑点（Price Slippage）？</strong></p>
+<p>我们可以通过Uniswap的AMM机制举例。我们能知道，Uniswap中两种token的价格会在一条曲线上变化，当交易订单越大（对于池子中代币总量来说很大）产生的滑点就越大，可从下图中看出：</p>
+<ul>
+<li>假如我们拥有一个x*y &#x3D; 4的流动新池。我们的初始价格为3.96 USD&#x2F;ETH(图中橙色虚线)，此时ETH储备大约为1 ，USD储备大约为3.96 。</li>
+<li>我们想卖出大约3.28 USD&#x2F;ETH个，可以从图中看出，这笔大交易使ETH价格从3.96降到了0.21 USD&#x2F;ETH。</li>
+<li>我们实际相当于支付的均价为：0.92 USD&#x2F;ETH，这是我们初始价格的0.23倍左右。</li>
+</ul>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/AMM/desmos-graph.png" alt="desmos-graph"></p>
+<p>上面我们用一个小流动性的池子和一个大交易，展示了滑点的产生过程。</p>
+<p>在DEX中一般可以设置滑点容忍度，比如：我通过1 ETH换取2000 DAI，此时我能接受大约0.5%的滑点，那么我卖出1 ETH至少能获得2000 * 0.995 &#x3D; 1990 DAI。</p>
+<h2 id="Front-Run和Back-Run"><a href="#Front-Run和Back-Run" class="headerlink" title="Front-Run和Back-Run"></a>Front-Run和Back-Run</h2><p>接下来讲一讲抢跑交易（Front-Run）和尾随交易（Back-Run）。公链上的交易都是公开的，所有人都能够看到，所以任何都能够监视区块链上的交易。投机者（一般web3称他们为科学家）能够根据这些公开的交易在以太坊上进行操作从而牟利。</p>
+<p><strong>Front-Run：</strong>投机者在知道某个用户还未上链的交易后，会发起一个更高gas的交易。矿工会优先打包gas费高的交易，所以投机者的交易排序会先于这个用户的交易。</p>
+<p><strong>Back-Run：</strong>它的逻辑和Front-Run类似，投机者会某个用户还未上链的交易后发起一个较低gas的交易，矿工会将该交易在用户交易之后打包进区块。</p>
+<p>你可能隐约知道了这些操作怎样去进行获利了，下面我通过一个Sandwich attack来具体分析Front-Run和Back-Run怎样去提取MEV（Maximal Extractable Value，最大可提取价值）。</p>
+<h3 id="三明治攻击（Sandwich-attack）"><a href="#三明治攻击（Sandwich-attack）" class="headerlink" title="三明治攻击（Sandwich attack）"></a>三明治攻击（Sandwich attack）</h3><p><strong>三明治攻击是什么？</strong></p>
+<p>三明治攻击和它的名字一样，攻击者会发送两笔交易将用户的交易夹在中间，通过Front-Run和Back-Run这两笔交易操作进行牟利。</p>
+<p>![sandwich attack](&#x2F;images&#x2F;posts&#x2F;AMM&#x2F;sandwich attack.jpg)</p>
+<p>好了，现在我们将会在Uniswap上发起一次Sandwich attack。它会使用到Front-Run和Back-Run的逻辑提取MEV。</p>
+<ul>
+<li>假设，我们有一个监视区块链的机器人，它会监视Uniswap中大交易。</li>
+<li>机器人在监控的池子状态：eth-1000，usdt-3500000，liquidity-1000*3500000</li>
+<li>此时有个交易者想要卖出20个eth，这个交易被我们的机器人检测到了。</li>
+<li>于是我们发送两个交易：Front-Run和Back-Run</li>
+<li>Front-Run会抢先在交易者前，卖出5个eth。Back-Run在交易者后用卖出的eth得到的17412.936usdt去购买eth。</li>
+<li>最终我们盈利了0.20046997eth</li>
+</ul>
+<p>下面使用go简单的模拟上述过程，实际操作中需要考虑当前网络gas花费、各个流动池手续费差异、是否有竞争者这些因数。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">&quot;fmt&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Pool <span class="keyword">struct</span> &#123;</span><br><span class="line">	x, y <span class="type">float32</span></span><br><span class="line">	k    <span class="type">float32</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	p := NewPool(<span class="number">1000</span>, <span class="number">3500000</span>)</span><br><span class="line">	fmt.Println(p, <span class="string">&quot;价格：&quot;</span>, p.Price())</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> cost <span class="type">float32</span> = <span class="number">5</span></span><br><span class="line">	getUsdt := p.SwapXtoY(cost)</span><br><span class="line">	fmt.Println(<span class="string">&quot;投机者获得usdt：&quot;</span>, getUsdt, <span class="string">&quot; 价格：&quot;</span>, p.Price())</span><br><span class="line">	p.SwapXtoY(<span class="number">20</span>)</span><br><span class="line">	fmt.Println(p, <span class="string">&quot;价格：&quot;</span>, p.Price())</span><br><span class="line">	getEth := p.SwapYtoX(getUsdt)</span><br><span class="line">	fmt.Println(<span class="string">&quot;投机者净盈利eth: &quot;</span>, getEth-cost)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewPool</span><span class="params">(x, y <span class="type">float32</span>)</span></span> *Pool &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;Pool&#123;</span><br><span class="line">		x: x,</span><br><span class="line">		y: y,</span><br><span class="line">		k: x * y,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Pool)</span></span> SwapXtoY(dx <span class="type">float32</span>) <span class="type">float32</span> &#123;</span><br><span class="line">	X := p.x</span><br><span class="line">	Y := p.y</span><br><span class="line"></span><br><span class="line">	dy := dx * Y / (dx + X)</span><br><span class="line"></span><br><span class="line">	p.x += dx</span><br><span class="line">	p.y -= dy</span><br><span class="line">	p.k = p.x * p.y</span><br><span class="line">	<span class="keyword">return</span> dy</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Pool)</span></span> SwapYtoX(dy <span class="type">float32</span>) <span class="type">float32</span> &#123;</span><br><span class="line">	X := p.x</span><br><span class="line">	Y := p.y</span><br><span class="line"></span><br><span class="line">	dx := dy * X / (dy + Y)</span><br><span class="line"></span><br><span class="line">	p.x -= dx</span><br><span class="line">	p.y += dy</span><br><span class="line">	p.k = p.x * p.y</span><br><span class="line">	<span class="keyword">return</span> dx</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p Pool)</span></span> Price() <span class="type">float32</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> p.y / p.x</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p Pool)</span></span> String() <span class="type">string</span> &#123;</span><br><span class="line">	<span class="keyword">return</span> fmt.Sprint(<span class="string">&quot;池子当前状态: (tokenA: &quot;</span>, p.x, <span class="string">&quot;, tokenB: &quot;</span>, p.y, <span class="string">&quot;, liquidity: &quot;</span>, p.k, <span class="string">&quot;)&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>How to DeFi中展示了以太坊上的sandwich attack案例</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/AMM/sandwichDemo.jpg" alt="sandwichDemo"></p>
+<h2 id="无偿损失"><a href="#无偿损失" class="headerlink" title="无偿损失"></a>无偿损失</h2><p>作为AMM中的LP，你可能会面临无偿损失。无常损失类似于衡量你在资金池中持有代币与在钱包中持有代币的机会成本。如果，你的代币还在流动性池中，那么无偿损失就还不会实现，只有当你移除流动性将代币拿出是才会实现。</p>
+<p>我们可以继续用上面的代码来计算无偿损失。</p>
+<ul>
+<li>假如，我们持有eth-10，usdt-35000，我们选择在uniswap中做市商。</li>
+<li>然后有交易者在我们池子中卖出3个eth，此时价格从3500 滑倒了 2071</li>
+<li>根据池子状态计算当前池子中总价值：53846</li>
+<li>如果我们不做市商，那么我们持有代币时总价值应该为：55710</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	holdx := <span class="type">float32</span>(<span class="number">10</span>)</span><br><span class="line">	holdy := <span class="type">float32</span>(<span class="number">35000</span>)</span><br><span class="line"></span><br><span class="line">	p := NewPool(holdx, holdy)</span><br><span class="line">	fmt.Println(p, <span class="string">&quot;价格：&quot;</span>, p.Price())</span><br><span class="line">	<span class="comment">// 池子当前状态: (tokenA: 10, tokenB: 35000, liquidity: 350000) 价格： 3500</span></span><br><span class="line">    </span><br><span class="line">	p.SwapXtoY(<span class="number">3</span>)</span><br><span class="line">	fmt.Println(p, <span class="string">&quot;价格：&quot;</span>, p.Price())</span><br><span class="line">	<span class="comment">// 池子当前状态: (tokenA: 13, tokenB: 26923.078, liquidity: 350000) 价格： 2071.006</span></span><br><span class="line"></span><br><span class="line">	poolV := p.Price()*p.x + p.y</span><br><span class="line">	fmt.Println(<span class="string">&quot;池中总价值：&quot;</span>, poolV)</span><br><span class="line">    <span class="comment">// 池中总价值： 53846.156</span></span><br><span class="line"></span><br><span class="line">	holdV := holdx*p.Price() + holdy</span><br><span class="line">	fmt.Println(<span class="string">&quot;如果持有代币总价值：&quot;</span>, holdV)</span><br><span class="line">    <span class="comment">// 如果持有代币总价值： 55710.062</span></span><br><span class="line"></span><br><span class="line">	lostV := holdV - poolV</span><br><span class="line">	fmt.Println(<span class="string">&quot;损失价值：&quot;</span>, lostV, <span class="string">&quot;百分比&quot;</span>, lostV/holdV*<span class="number">100</span>, <span class="string">&quot;%&quot;</span>)</span><br><span class="line">    <span class="comment">// 损失价值： 1863.9062 百分比 3.3457265 %</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>计算无偿损失的公式</p>
+<p><img class="lazy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGdBTUEAALGPC/xhBQAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAADa6r/EAAAAC0lEQVQIHWNgAAIAAAUAAY27m/MAAAAASUVORK5CYII=" data-src="/images/posts/AMM/%E6%97%A0%E5%81%BF%E6%8D%9F%E5%A4%B1.jpg" alt="无偿损失"></p>
+<p>可以用go检验一下这个公式</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">d := <span class="number">2071.006</span> / <span class="number">3500</span></span><br><span class="line">IL := <span class="number">2</span>*math.Sqrt(d)/(d+<span class="number">1</span>) - <span class="number">1</span></span><br><span class="line">fmt.Println(IL)</span><br><span class="line"><span class="comment">// -0.03345724411216</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p>How to DeFi</p>
+
 <div class="article-footer fs14">
     <section id="license">
       <div class="header"><span>许可协议</span></div>
@@ -96,7 +217,7 @@
     </section>
     </div>
 </article>
-<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"><div class="note">较新文章</div><a href="/2024/07/22/MEV-%E6%9C%80%E5%A4%A7%E5%8F%AF%E6%8F%90%E5%8F%96%E4%BB%B7%E5%80%BC%E5%92%8C%E5%AE%9E%E7%8E%B0/">MEV-最大可提取价值和实现</a></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/22/Uniswap-v2-%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Uniswap-v2(二)-源码分析</a></div></section></div>
+<div class="related-wrap" id="read-next"><section class="body"><div class="item" id="prev"></div><div class="item" id="next"><div class="note">较早文章</div><a href="/2024/07/22/Uniswap-v2-%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Uniswap-v2(二)-源码分析</a></div></section></div>
 
 
 
@@ -106,7 +227,14 @@
 <footer class="page-footer footnote"><hr><div class="text"><p>本站由 <a href="/">Salbt</a> 使用 <a target="_blank" rel="noopener" href="https://github.com/xaoxuu/hexo-theme-stellar/tree/1.28.1">Stellar 1.28.1</a> 主题创建。<br>本博客所有文章除特别声明外，均采用 <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 许可协议，转载请注明出处。</p>
 </div></footer>
 <div class="main-mask" onclick="sidebar.dismiss()"></div></div><aside class="l_right">
-</aside><div class='float-panel blur'>
+<div class="widgets">
+
+
+
+<widget class="widget-wrapper toc" id="data-toc" collapse="false"><div class="widget-header dis-select"><span class="name">本文目录</span><a class="cap-action" onclick="sidebar.toggleTOC()" ><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg></a></div><div class="widget-body"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E5%81%9A%E5%B8%82%E5%95%86-AMM"><span class="toc-text">自动做市商(AMM)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5"><span class="toc-text">相关概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%BB%E4%B8%AD%E5%BF%83%E5%8C%96%E4%BA%A4%E6%98%93%E6%89%80"><span class="toc-text">去中心化交易所</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%84%E7%A7%8D%E7%B1%BB%E5%9E%8B%E7%9A%84AMM"><span class="toc-text">各种类型的AMM</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#AMM%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%A3%8E%E9%99%A9"><span class="toc-text">AMM带来的风险</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BB%91%E7%82%B9"><span class="toc-text">滑点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Front-Run%E5%92%8CBack-Run"><span class="toc-text">Front-Run和Back-Run</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E6%98%8E%E6%B2%BB%E6%94%BB%E5%87%BB%EF%BC%88Sandwich-attack%EF%BC%89"><span class="toc-text">三明治攻击（Sandwich attack）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A0%E5%81%BF%E6%8D%9F%E5%A4%B1"><span class="toc-text">无偿损失</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></div><div class="widget-footer">
+
+<a class="top" onclick="util.scrollTop()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2c4.714 0 7.071 0 8.535 1.464C22 4.93 22 7.286 22 12c0 4.714 0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 15.5l3-3l3 3m-6-4l3-3l3 3"/></g></svg><span>回到顶部</span></a><a class="buttom" onclick="util.scrollComment()"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.46 1.25h3.08c1.603 0 2.86 0 3.864.095c1.023.098 1.861.3 2.6.752a5.75 5.75 0 0 1 1.899 1.899c.452.738.654 1.577.752 2.6c.095 1.004.095 2.261.095 3.865v1.067c0 1.141 0 2.036-.05 2.759c-.05.735-.153 1.347-.388 1.913a5.75 5.75 0 0 1-3.112 3.112c-.805.334-1.721.408-2.977.43a10.81 10.81 0 0 0-.929.036c-.198.022-.275.054-.32.08c-.047.028-.112.078-.224.232c-.121.166-.258.396-.476.764l-.542.916c-.773 1.307-2.69 1.307-3.464 0l-.542-.916a10.605 10.605 0 0 0-.476-.764c-.112-.154-.177-.204-.224-.232c-.045-.026-.122-.058-.32-.08c-.212-.023-.49-.03-.93-.037c-1.255-.021-2.171-.095-2.976-.429A5.75 5.75 0 0 1 1.688 16.2c-.235-.566-.338-1.178-.389-1.913c-.049-.723-.049-1.618-.049-2.76v-1.066c0-1.604 0-2.86.095-3.865c.098-1.023.3-1.862.752-2.6a5.75 5.75 0 0 1 1.899-1.899c.738-.452 1.577-.654 2.6-.752C7.6 1.25 8.857 1.25 10.461 1.25M6.739 2.839c-.914.087-1.495.253-1.959.537A4.25 4.25 0 0 0 3.376 4.78c-.284.464-.45 1.045-.537 1.96c-.088.924-.089 2.11-.089 3.761v1c0 1.175 0 2.019.046 2.685c.045.659.131 1.089.278 1.441a4.25 4.25 0 0 0 2.3 2.3c.515.214 1.173.294 2.429.316h.031c.398.007.747.013 1.037.045c.311.035.616.104.909.274c.29.17.5.395.682.645c.169.232.342.525.538.856l.559.944a.52.52 0 0 0 .882 0l.559-.944c.196-.331.37-.624.538-.856c.182-.25.392-.476.682-.645c.293-.17.598-.24.909-.274c.29-.032.639-.038 1.037-.045h.032c1.255-.022 1.913-.102 2.428-.316a4.25 4.25 0 0 0 2.3-2.3c.147-.352.233-.782.278-1.441c.046-.666.046-1.51.046-2.685v-1c0-1.651 0-2.837-.089-3.762c-.087-.914-.253-1.495-.537-1.959a4.25 4.25 0 0 0-1.403-1.403c-.464-.284-1.045-.45-1.96-.537c-.924-.088-2.11-.089-3.761-.089h-3c-1.651 0-2.837 0-3.762.089" clip-rule="evenodd"/><path fill="currentColor" d="M9 11a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0"/></svg><span>参与讨论</span></a></div></widget>
+</div></aside><div class='float-panel blur'>
   <button type='button' style='display:none' class='laptop-only rightbar-toggle mobile' onclick='sidebar.rightbar()'>
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h11m-11 6h11m-11 6h11M4 6h1v4m-1 0h2m0 8H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
   </button>
